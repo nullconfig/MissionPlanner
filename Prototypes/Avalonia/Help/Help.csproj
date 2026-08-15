@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Help bundle - one of the per-tab bundles mirroring Mission Planner's own top-level
+    screens (see ../DemoApp/README.md's "Bundles" section). Extracted from
+    ../DemoApp/MainWindow.axaml, where it originally lived inline, purely for structural
+    consistency with the other bundles - it's simple (a couple of real outbound links),
+    so there wasn't a functional reason to split it, just a "every tab is its own bundle"
+    one.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.Simulation.SimulationView">
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#262B36"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#ECEFF4"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#8B93A7"/>
+    <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
+    <SolidColorBrush x:Key="TerminalGreen" Color="#3DDC97"/>
+    <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
+    </Style>
+    <Style Selector="Button.Primary">
+      <Setter Property="Background" Value="{StaticResource AccentOrange}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="16">
+    <TextBlock Text="▶ Simulation" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+
+    <Border Classes="Card">
+      <StackPanel Spacing="10">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Border x:Name="StatusDot" Width="10" Height="10" CornerRadius="999" Background="{StaticResource Danger}" VerticalAlignment="Center"/>
+          <TextBlock x:Name="StatusHeading" Text="SITL not found" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+        </StackPanel>
+        <TextBlock x:Name="StatusText" FontFamily="Consolas,Menlo,monospace" FontSize="12"
+                   Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap"/>
+        <Button x:Name="LaunchButton" Content="Launch SITL" Classes="Primary" IsEnabled="False" HorizontalAlignment="Left"/>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="Card">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Not yet implemented in this prototype" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+        <TextBlock Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap">
+          The real Simulation screen lets you launch and connect to an ArduPilot SITL
+          instance directly from the GCS (MainV2.cs routes to it via
+          MyView.ShowScreen("Simulation")). This bundle only detects whether
+          sim_vehicle.py is available - actually shelling out to launch it, and wiring the
+          resulting UDP endpoint into the connect bar (see ../DemoApp/README.md's UDP
+          section), is not implemented yet.
+        </TextBlock>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

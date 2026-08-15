@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Simulation bundle - one of the per-tab bundles mirroring Mission Planner's own
+    top-level screens (see ../DemoApp/README.md's "Bundles" section). Real (not faked)
+    check for ArduPilot SITL tooling (sim_vehicle.py) on PATH; does not launch SITL yet -
+    see README.md for what a contributor would need to add.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+</Project>

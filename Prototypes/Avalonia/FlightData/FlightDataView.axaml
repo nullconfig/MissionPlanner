@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.FlightData.FlightDataView">
+
+  <!-- Self-contained visual language (matches ../DemoApp/App.axaml and the other
+       bundles) since this UserControl has no App.axaml of its own once reused
+       elsewhere. -->
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#262B36"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#ECEFF4"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#8B93A7"/>
+    <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
+    <SolidColorBrush x:Key="AccentBlue" Color="#4C8DFF"/>
+    <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
+    </Style>
+    <Style Selector="TextBlock.StatLabel">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+    <Style Selector="TextBlock.StatValue">
+      <Setter Property="FontSize" Value="20"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+    <Style Selector="Border.Pill">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="CornerRadius" Value="999"/>
+      <Setter Property="Padding" Value="10,4"/>
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
+      <TextBlock Grid.Column="0" Text="◉ Flight Data" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+      <Border Grid.Column="1" Classes="Pill" Margin="0,0,8,0">
+        <TextBlock x:Name="ModeText" Text="-" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}"/>
+      </Border>
+      <Border Grid.Column="2" Classes="Pill">
+        <TextBlock x:Name="ArmedText" Text="DISARMED" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/>
+      </Border>
+    </Grid>
+
+    <UniformGrid Columns="3" Rows="3">
+      <Border Classes="Card" Margin="0,0,8,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="ATTITUDE"/>
+          <TextBlock x:Name="AttitudeText" Classes="StatValue" Text="roll 0.0° · pitch 0.0°" FontSize="15"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,8,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="HEADING"/>
+          <TextBlock x:Name="HeadingText" Classes="StatValue" Text="0°"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,0,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="ALTITUDE"/>
+          <TextBlock x:Name="AltitudeText" Classes="StatValue" Text="0.0 m"/>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="Card" Margin="0,0,8,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="GROUND SPEED"/>
+          <TextBlock x:Name="GroundSpeedText" Classes="StatValue" Text="0.0 m/s"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,8,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="AIR SPEED"/>
+          <TextBlock x:Name="AirSpeedText" Classes="StatValue" Text="0.0 m/s"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,0,8">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="BATTERY"/>
+          <TextBlock x:Name="BatteryText" Classes="StatValue" Text="0.00 V · 0%" FontSize="15"/>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="Card" Margin="0,0,8,0">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="CURRENT"/>
+          <TextBlock x:Name="CurrentText" Classes="StatValue" Text="0.0 A"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,8,0">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="GPS"/>
+          <TextBlock x:Name="GpsText" Classes="StatValue" Text="no fix · 0 sats" FontSize="15"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="POSITION"/>
+          <TextBlock x:Name="PositionText" Classes="StatValue" Text="0.000000, 0.000000" FontSize="13"/>
+        </StackPanel>
+      </Border>
+    </UniformGrid>
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Initial Setup bundle - one of the per-tab bundles mirroring Mission Planner's own
+    top-level screens (see ../DemoApp/README.md's "Bundles" section). Real vehicle
+    identification (firmware, frame class/type) from a connected MAVLinkInterface; the
+    actual setup wizard (accel/compass/radio/ESC calibration - see
+    GCSViews/InitialSetup.cs) is not implemented, just documented as next steps in
+    README.md for a contributor to pick up.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+  </ItemGroup>
+
+</Project>

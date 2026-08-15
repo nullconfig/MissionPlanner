@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Real (non-mocked) MVVM port of GCSViews/ConfigurationView/ConfigMotorTest.cs, now a
+    buildable net8.0 Avalonia class library. References MissionPlanner.ArduPilot.csproj
+    (netstandard2.0, zero System.Windows.Forms) directly for MAVLinkInterface - NOT
+    MissionPlanner.csproj (net472, pulls in WinForms, can't load on Linux). See
+    ../DemoApp/ for the runnable host that connects a real MAVLinkInterface and hosts this
+    view; see README.md for what's still missing to fully replace the WinForms screen.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\..\APMotorLayout.json" Link="APMotorLayout.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
