@@ -1,0 +1,209 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MissionPlanner.Prototypes.Avalonia.ConfigMotorTest"
+             x:Class="MissionPlanner.Prototypes.Avalonia.ConfigMotorTest.ConfigMotorTestView"
+             x:DataType="vm:ConfigMotorTestViewModel">
+
+  <!--
+    Layout replaces the old absolute Point(x, y) placement (ConfigMotorTest.cs, Activate())
+    with a StackPanel/Grid so it lays out correctly at any DPI/scale on any platform - one of
+    the concrete modernization wins, not just a reskin. The motor buttons that used to be
+    built one at a time via groupBox1.Controls.Add(new MyButton()) are now an ItemsControl
+    bound to the ViewModel's Motors collection.
+
+    Visual language (cards, dark palette, MotorTest/Primary/Outline/Danger/Ghost button
+    classes) is kept hand-in-sync with ../DemoApp/MainWindow.axaml, which is where it's
+    actually verified running on Linux - see that file's README for how to smoke-test it.
+    NOTE: the ItemsControl's per-row Button.Command below uses an inline type-cast binding
+    ($parent[UserControl].((vm:...)DataContext)...), which requires the *hosting* project to
+    set <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault> in
+    its .csproj (DemoApp hit this as a runtime "Unable to resolve type" crash before that was
+    set - see ../DemoApp/README.md).
+  -->
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#262B36"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#ECEFF4"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#8B93A7"/>
+    <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
+    <SolidColorBrush x:Key="AccentBlue" Color="#4C8DFF"/>
+    <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
+    </Style>
+    <Style Selector="Border.Pill">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="CornerRadius" Value="999"/>
+      <Setter Property="Padding" Value="10,4"/>
+    </Style>
+    <Style Selector="Border.NumberBadge">
+      <Setter Property="Width" Value="30"/>
+      <Setter Property="Height" Value="30"/>
+      <Setter Property="CornerRadius" Value="999"/>
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBlue}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="TextBlock.CardHeading">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+
+    <Style Selector="Button.Primary">
+      <Setter Property="Background" Value="{StaticResource AccentOrange}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.Primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#FF8C3C"/>
+    </Style>
+
+    <Style Selector="Button.Outline">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="12,9"/>
+    </Style>
+    <Style Selector="Button.Outline:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1F2430"/>
+    </Style>
+
+    <Style Selector="Button.Ghost">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="6,6"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.Ghost:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1F2430"/>
+    </Style>
+
+    <Style Selector="Button.Danger">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource Danger}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource Danger}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="12,9"/>
+    </Style>
+    <Style Selector="Button.Danger:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A1618"/>
+    </Style>
+
+    <Style Selector="Button.MotorTest">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource AccentBlue}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource AccentBlue}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="14,6"/>
+    </Style>
+    <Style Selector="Button.MotorTest:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#17263F"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Padding="20" Background="#0F1115" IsEnabled="{Binding !IsBusy}">
+    <DockPanel>
+
+      <!-- Header -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="Motor Test" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+          <TextBlock Text="Select motors, set throttle/duration, and test" FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+        </StackPanel>
+        <Border Grid.Column="1" Classes="Pill" VerticalAlignment="Center" IsVisible="{Binding IsBusy}">
+          <TextBlock Text="TESTING…" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentOrange}"/>
+        </Border>
+      </Grid>
+
+      <Grid ColumnDefinitions="1.6*,*" ColumnSpacing="16">
+
+        <!-- Motors card -->
+        <Border Grid.Column="0" Classes="Card">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,14">
+              <Border Classes="Pill">
+                <TextBlock Text="{Binding FrameClassText}" FontSize="11" Foreground="{StaticResource TextPrimary}"/>
+              </Border>
+              <Border Classes="Pill">
+                <TextBlock Text="{Binding FrameTypeText}" FontSize="11" Foreground="{StaticResource TextPrimary}"/>
+              </Border>
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Motors}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:MotorButtonViewModel">
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+                    <Border Grid.Column="0" Classes="NumberBadge">
+                      <TextBlock Text="{Binding Number}" FontWeight="Bold" FontSize="13"
+                                 Foreground="{StaticResource AccentBlue}"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="13"
+                                 Foreground="{StaticResource TextPrimary}"/>
+                      <TextBlock Text="{Binding DetailLabel}" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Test" Classes="MotorTest"
+                            Command="{Binding $parent[UserControl].((vm:ConfigMotorTestViewModel)DataContext).TestMotorCommand}"
+                            CommandParameter="{Binding Number}"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </DockPanel>
+        </Border>
+
+        <!-- Controls column -->
+        <StackPanel Grid.Column="1" Spacing="16">
+
+          <Border Classes="Card">
+            <StackPanel Spacing="12">
+              <TextBlock Text="PARAMETERS" Classes="CardHeading"/>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Throttle %" FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                <NumericUpDown Value="{Binding ThrottlePercent}" Minimum="0" Maximum="100" HorizontalAlignment="Stretch"/>
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="Duration (s)" FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                <NumericUpDown Value="{Binding DurationSeconds}" Minimum="0" Maximum="999" HorizontalAlignment="Stretch"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="Card">
+            <StackPanel Spacing="8">
+              <TextBlock Text="ACTIONS" Classes="CardHeading"/>
+              <Button Content="Test all motors" Classes="Primary" Command="{Binding TestAllCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Button Content="Test all in sequence" Classes="Outline" Command="{Binding TestAllSequenceCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Button Content="Stop all motors" Classes="Danger" Command="{Binding StopAllCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Border Height="1" Background="{StaticResource CardBorder}" Margin="0,6"/>
+              <Button Content="Set spin arm…" Classes="Ghost" Command="{Binding SetSpinArmCommand}" HorizontalAlignment="Stretch"/>
+              <Button Content="Set spin min…" Classes="Ghost" Command="{Binding SetSpinMinCommand}" HorizontalAlignment="Stretch"/>
+              <HyperlinkButton Content="Motor order diagrams ↗" Command="{Binding OpenDocsCommand}" HorizontalAlignment="Left" Padding="6,4"/>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </Grid>
+    </DockPanel>
+  </Border>
+</UserControl>

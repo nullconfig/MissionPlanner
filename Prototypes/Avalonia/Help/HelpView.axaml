@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.Help.HelpView">
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#262B36"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#ECEFF4"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#8B93A7"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="Card">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="380">
+      <TextBlock Text="?  Help" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+      <TextBlock Text="This is an Avalonia/native-Linux prototype of Mission Planner, not the full app."
+                 Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+      <HyperlinkButton Content="ArduPilot documentation ↗" Click="OnOpenArduPilotDocsClick" HorizontalAlignment="Center"/>
+      <HyperlinkButton Content="Mission Planner on GitHub ↗" Click="OnOpenGitHubClick" HorizontalAlignment="Center"/>
+    </StackPanel>
+  </Border>
+</UserControl>

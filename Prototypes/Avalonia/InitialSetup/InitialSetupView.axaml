@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.InitialSetup.InitialSetupView">
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#262B36"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#ECEFF4"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#8B93A7"/>
+    <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <Style Selector="Border.Card">
+      <Setter Property="Background" Value="{StaticResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="16"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
+    </Style>
+    <Style Selector="TextBlock.StatLabel">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+    <Style Selector="TextBlock.StatValue">
+      <Setter Property="FontSize" Value="20"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="⚙ Initial Setup" FontSize="16" FontWeight="Bold"
+               Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
+
+    <UniformGrid DockPanel.Dock="Top" Columns="4" Margin="0,0,0,16">
+      <Border Classes="Card" Margin="0,0,8,0">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="FIRMWARE"/>
+          <TextBlock x:Name="FirmwareText" Classes="StatValue" Text="-" FontSize="14"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,8,0">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="VEHICLE TYPE"/>
+          <TextBlock x:Name="VehicleTypeText" Classes="StatValue" Text="-" FontSize="14"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card" Margin="0,0,8,0">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="FRAME_CLASS"/>
+          <TextBlock x:Name="FrameClassText" Classes="StatValue" Text="-"/>
+        </StackPanel>
+      </Border>
+      <Border Classes="Card">
+        <StackPanel>
+          <TextBlock Classes="StatLabel" Text="FRAME_TYPE"/>
+          <TextBlock x:Name="FrameTypeText" Classes="StatValue" Text="-"/>
+        </StackPanel>
+      </Border>
+    </UniformGrid>
+
+    <Border Classes="Card">
+      <StackPanel Spacing="8">
+        <TextBlock Text="Not yet implemented in this prototype" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+        <TextBlock Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap">
+          The real Initial Setup screen (GCSViews/InitialSetup.cs) is a wizard covering:
+          frame type selection, accelerometer calibration, compass calibration, radio
+          calibration, ESC calibration, and flight mode assignment. Only vehicle
+          identification (above, read from the connected MAVLinkInterface) is real here.
+        </TextBlock>
+      </StackPanel>
+    </Border>
+  </DockPanel>
+</UserControl>

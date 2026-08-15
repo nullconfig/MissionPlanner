@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MissionPlanner.Prototypes.Avalonia.ConfigMotorTest.PromptDialog"
+        Width="380" Height="200" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="Full"
+        Background="#0F1115"
+        Title="Mission Planner">
+
+  <!-- Minimal modal replacement for WinForms InputBox.Show(...) - see AvaloniaDialogService.cs. -->
+
+  <Border Padding="20">
+    <StackPanel Spacing="14">
+      <TextBlock x:Name="PromptTextBlock" Foreground="#ECEFF4" FontSize="14" TextWrapping="Wrap"/>
+      <NumericUpDown x:Name="ValueInput" Minimum="-100000" Maximum="100000" HorizontalAlignment="Stretch"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,6,0,0">
+        <Button x:Name="CancelButton" Content="Cancel" Click="OnCancel"
+                Background="Transparent" Foreground="#8B93A7" BorderBrush="#262B36" BorderThickness="1"
+                CornerRadius="6" Padding="12,7"/>
+        <Button x:Name="OkButton" Content="OK" Click="OnOk"
+                Background="#FF7A1B" Foreground="White" FontWeight="SemiBold"
+                CornerRadius="6" Padding="16,7" BorderThickness="0"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

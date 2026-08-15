@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    App shell for the per-tab Avalonia bundles (ConfigMotorTest, FlightData, FlightPlan,
+    InitialSetup, Simulation, Terminal, Help - see README.md's "Bundles" section) that
+    together mirror Mission Planner's own top-level screens (MainV2.Designer.cs:
+    MenuFlightData..MenuHelp). Connects a real MAVLinkInterface (USB serial or UDP)
+    instead of mocking one. Deliberately has NO reference to MissionPlanner.csproj: that
+    project targets net472 and pulls in System.Windows.Forms, which a net8 app cannot
+    load on Linux. Each bundle instead references
+    ExtLibs/ArduPilot/MissionPlanner.ArduPilot.csproj (netstandard2.0, zero WinForms)
+    directly where it needs live vehicle data - see ConfigMotorTest.csproj's own comment
+    header for the decoupling this all depends on.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConfigMotorTest\ConfigMotorTest.csproj" />
+    <ProjectReference Include="..\FlightData\FlightData.csproj" />
+    <ProjectReference Include="..\FlightPlan\FlightPlan.csproj" />
+    <ProjectReference Include="..\InitialSetup\InitialSetup.csproj" />
+    <ProjectReference Include="..\Simulation\Simulation.csproj" />
+    <ProjectReference Include="..\Terminal\Terminal.csproj" />
+    <ProjectReference Include="..\Help\Help.csproj" />
+  </ItemGroup>
+
+</Project>

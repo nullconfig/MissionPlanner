@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Flight Plan bundle - one of the per-tab bundles mirroring Mission Planner's own
+    top-level screens (see ../DemoApp/README.md's "Bundles" section). Pure scaffold - no
+    real feature implemented yet, since the real screen (GCSViews/FlightPlanner.cs) is a
+    full mission editor built on a GMap.NET map, which nothing else in these bundles has
+    needed yet. See README.md for scope.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+</Project>

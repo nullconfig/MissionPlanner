@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MissionPlanner.Prototypes.Avalonia.ConfigMotorTest.MessageDialog"
+        Width="380" MinHeight="160" SizeToContent="Height" CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="Full"
+        Background="#0F1115"
+        Title="Mission Planner">
+
+  <!-- Minimal modal replacement for WinForms CustomMessageBox.Show(...) - see AvaloniaDialogService.cs. -->
+
+  <Border Padding="20">
+    <StackPanel Spacing="14">
+      <TextBlock x:Name="MessageTextBlock" Foreground="#ECEFF4" FontSize="14" TextWrapping="Wrap"/>
+      <Button x:Name="OkButton" Content="OK" Click="OnOk" HorizontalAlignment="Right"
+              Background="#FF7A1B" Foreground="White" FontWeight="SemiBold"
+              CornerRadius="6" Padding="16,7" BorderThickness="0"/>
+    </StackPanel>
+  </Border>
+</Window>

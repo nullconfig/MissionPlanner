@@ -1,0 +1,184 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MissionPlanner.Prototypes.Avalonia.DemoApp.MainWindow"
+        Title="Mission Planner — Avalonia native-Linux harness"
+        Width="1180" Height="700" MinWidth="1000" MinHeight="560"
+        Background="#0F1115">
+
+  <!-- Real (non-mocked) harness: hosts ConfigMotorTest.csproj's ConfigMotorTestView,
+       backed by a real MAVLinkInterface connected over USB serial or UDP here, instead
+       of the DemoConfigMotorTestViewModel mock this file used to carry. See README.md.
+
+       Top banner mirrors the real app's own toolbar layout (MainV2.Designer.cs:
+       MenuFlightData..MenuHelp on the left, the connection control on the far right) -
+       one nav tab per main screen, only Config/Tuning (Motor Test) is wired to real
+       content here; the rest are placeholders. No Terminal tab - verified against
+       MainV2.Designer.cs's actual MainMenu.Items list that it isn't a top-level screen
+       in the real app (it's a Config/Tuning sub-screen, ConfigTerminal.cs, and a
+       command-*input* one at that, not a read-only viewer). The read-only console
+       below is a different thing: a persistent, always-visible troubleshooting log,
+       not a per-tab screen. -->
+
+  <DockPanel>
+
+    <!-- Top banner: logo, section nav tabs, connection controls (far right) -->
+    <Border DockPanel.Dock="Top" Background="{StaticResource CardBg}"
+            BorderThickness="0,0,0,1" BorderBrush="{StaticResource CardBorder}">
+      <!-- Grid with Auto/*/Auto columns: badge, nav tabs (fills the middle, scrolls
+           independently if it doesn't fit), connect controls (Auto - sized to content,
+           always anchored flush to the right edge, never scrolled/squeezed). Only the
+           nav tabs live inside a ScrollViewer, not the connect controls - this is what
+           makes the connect controls a true right anchor instead of just trailing
+           after the last tab with a gap when the window is wide. -->
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,0" MinHeight="52">
+
+        <Border Grid.Column="0" Width="32" Height="32" CornerRadius="8"
+                Background="{StaticResource AccentOrange}" Margin="0,0,16,0" VerticalAlignment="Center">
+          <TextBlock Text="MP" FontWeight="Bold" FontSize="11" Foreground="White"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <!-- ScrollViewer (not a bare StackPanel) so the nav strip clips/scrolls within
+             its own column at narrow widths instead of overflowing into the connect
+             controls' column - a plain StackPanel in an Avalonia Grid doesn't clip to
+             its column. -->
+        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                      HorizontalAlignment="Left" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="2">
+            <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="◉" FontSize="13"/>
+                <TextBlock Text="Flight Data" FontSize="12"/>
+              </StackPanel>
+            </Button>
+            <Button x:Name="NavFlightPlan" Tag="FlightPlan" Click="OnNavClick" Classes="NavTab">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="⚑" FontSize="13"/>
+                <TextBlock Text="Flight Plan" FontSize="12"/>
+              </StackPanel>
+            </Button>
+            <Button x:Name="NavInitialSetup" Tag="InitialSetup" Click="OnNavClick" Classes="NavTab">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="⚙" FontSize="13"/>
+                <TextBlock Text="Initial Setup" FontSize="12"/>
+              </StackPanel>
+            </Button>
+            <Button x:Name="NavConfigTuning" Tag="ConfigTuning" Click="OnNavClick" Classes="NavTab NavTabActive">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="≡" FontSize="13"/>
+                <TextBlock Text="Config/Tuning" FontSize="12"/>
+              </StackPanel>
+            </Button>
+            <Button x:Name="NavSimulation" Tag="Simulation" Click="OnNavClick" Classes="NavTab">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="▶" FontSize="13"/>
+                <TextBlock Text="Simulation" FontSize="12"/>
+              </StackPanel>
+            </Button>
+            <Button x:Name="NavHelp" Tag="Help" Click="OnNavClick" Classes="NavTab">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="?" FontSize="13"/>
+                <TextBlock Text="Help" FontSize="12"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </ScrollViewer>
+
+        <!-- Connection controls - anchored to the far right, as requested. Auto-sized,
+             not wrapped in a ScrollViewer, so it never scrolls or gets squeezed; the
+             nav ScrollViewer above absorbs all the space pressure at narrow widths. -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="16,0,0,0">
+          <ComboBox x:Name="ModeCombo" SelectedIndex="0" Width="92" SelectionChanged="OnModeChanged">
+            <ComboBoxItem Content="USB/Serial"/>
+            <ComboBoxItem Content="UDP"/>
+          </ComboBox>
+
+          <StackPanel x:Name="SerialFields" Orientation="Horizontal" Spacing="6">
+            <ComboBox x:Name="SerialPortCombo" Width="150" PlaceholderText="No ports found"/>
+            <Button x:Name="RefreshPortsButton" Content="⟳" Classes="Ghost" Click="OnRefreshPortsClick" Padding="8,6"/>
+            <ComboBox x:Name="BaudCombo" Width="80"/>
+          </StackPanel>
+
+          <StackPanel x:Name="UdpFields" Orientation="Horizontal" Spacing="6" IsVisible="False">
+            <TextBox x:Name="HostBox" Text="127.0.0.1" Width="110" Watermark="Host"/>
+            <TextBox x:Name="PortBox" Text="14550" Width="70" Watermark="Port"/>
+          </StackPanel>
+
+          <Button x:Name="ConnectButton" Content="Connect" Classes="Primary" Click="OnConnectClick"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Connection status line -->
+    <Border DockPanel.Dock="Top" Padding="16,8" BorderThickness="0,0,0,1" BorderBrush="{StaticResource CardBorder}">
+      <TextBlock x:Name="ConnectStatusText" Text="Select the USB port your flight controller enumerates as (e.g. /dev/ttyACM0) and connect"
+                 Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+    </Border>
+
+    <!-- Persistent, foldable, read-only troubleshooting console - not a per-tab screen,
+         reachable regardless of which nav tab is active. Hosts the same TerminalView
+         used before (Prototypes/Avalonia/Terminal/), just mounted here instead of
+         behind a nav tab. The fold toggle lives inside TerminalView's own header now
+         (next to the ">_ Terminal" label, alongside the filters/message count it
+         already had) rather than as a separate outer "Console" bar - folding collapses
+         TerminalView down to just that header row, which this wrapper (sized to
+         content, no fixed height) shrinks to match. Declared before the content Grid
+         below so that Grid (the last, non-Docked child) is the one that fills
+         remaining space, not this. -->
+    <Border DockPanel.Dock="Bottom" Margin="24,0,24,24" IsVisible="False" x:Name="BottomConsolePanel">
+      <ContentControl x:Name="BottomConsoleHost"/>
+    </Border>
+
+    <!-- Content: one panel per nav section, swapped by OnNavClick. Each hosts its own
+         bundle project's View (see README.md's "Bundles" section) - FlightData,
+         InitialSetup, and ConfigTuning (Motor Test) need a live MAVLinkInterface, so
+         they show a placeholder until connected, same pattern as Motor Test already
+         used; FlightPlan, Simulation, and Help don't need a connection and are hosted
+         immediately at startup. -->
+    <Grid Margin="24">
+
+      <Grid x:Name="FlightDataPanel" IsVisible="False">
+        <Border Classes="Card">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+            <TextBlock Text="◉  Flight Data" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Not connected. Use the connection controls in the banner to load live telemetry."
+                       Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <ContentControl x:Name="FlightDataHost" IsVisible="False"/>
+      </Grid>
+
+      <ContentControl x:Name="FlightPlanHost" IsVisible="False"/>
+
+      <Grid x:Name="InitialSetupPanel" IsVisible="False">
+        <Border Classes="Card">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+            <TextBlock Text="⚙  Initial Setup" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Not connected. Use the connection controls in the banner to identify the vehicle."
+                       Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <ContentControl x:Name="InitialSetupHost" IsVisible="False"/>
+      </Grid>
+
+      <!-- Config/Tuning: the one bundle with the deepest real feature - Motor Test -->
+      <Grid x:Name="ConfigTuningPanel" IsVisible="True">
+        <Border x:Name="PlaceholderCard" Classes="Card">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+            <TextBlock Text="≡  Config/Tuning → Motor Test" FontSize="16" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) motor test screen."
+                       Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <ContentControl x:Name="MotorTestHost" IsVisible="False"/>
+      </Grid>
+
+      <ContentControl x:Name="SimulationHost" IsVisible="False"/>
+
+      <ContentControl x:Name="HelpHost" IsVisible="False"/>
+
+    </Grid>
+
+  </DockPanel>
+</Window>

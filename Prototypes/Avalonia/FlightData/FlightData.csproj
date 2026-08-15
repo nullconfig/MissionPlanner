@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Flight Data bundle - one of the per-tab bundles mirroring Mission Planner's own
+    top-level screens (see ../DemoApp/README.md's "Bundles" section). Real (non-mocked)
+    live telemetry readout from a connected MAVLinkInterface's CurrentState - the same
+    data GCSViews/FlightData.cs's HUD control data-binds to (see
+    GCSViews/FlightData.Designer.cs, search "bindingSourceHud"). Does NOT yet include the
+    HUD's artificial-horizon rendering or the map - see README.md for what's real here
+    and what a contributor would need to add for closer 1:1 parity.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+  </ItemGroup>
+
+</Project>
