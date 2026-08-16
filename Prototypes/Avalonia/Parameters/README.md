@@ -30,12 +30,23 @@ scrolling the whole list isn't how anyone actually finds one.
 ported the exact algorithm, see `ParametersViewModel.BuildGroupTree`). Selecting a node
 narrows the grid to that group, combined with the search box.
 
+**Also done, 2026-08-16**: real metadata now loads on a plain-`dotnet run` machine (a
+shared `Settings.cs` bug meant `ParameterMetaDataRepository` silently returned nothing
+outside Mono - see `.okf/config-tuning/parameters/overview.md` for the fix), and the
+real right-side action panel (`ConfigRawParams.cs`'s `tableLayoutPanel1`) is now built
+as a third grid column - tree/grid/panel, matching the real `splitContainer1` layout.
+`None Default`, `Refresh Table`, and `Search` (relocated here from the old top-of-card
+box) are real and wired; everything else in the panel is present but disabled with a
+`ToolTip.Tip` naming what it's waiting on - see the overview doc for the full
+per-control breakdown.
+
 **Not yet ported**: in-place value editing (`setParamAsync` write-back), the `Fav`
 favorites column/toggle, param-compare, save/load `.param` files, reboot-required
-warnings, bitmask/enum-aware editors, the `Modified`/`None Default` filter checkboxes,
-and the rest of the real action panel (`Write Params`, `Refresh Params`, `Load
-Presaved`, `Reset to Default`). All real features of `ConfigRawParams.cs` - tracked as
-later chunks, not forgotten.
+warnings, bitmask/enum-aware editors, the `Modified` filter checkbox (needs the same
+edit-tracking `Write Params` does), and live re-download (`Refresh Params`,
+`getParamList()`) and the vehicle-mutating `Commit Params` (`PREFLIGHT_STORAGE`) - both
+deliberately left disabled rather than wired without their real safety gates. All real
+features of `ConfigRawParams.cs` - tracked as later chunks, not forgotten.
 
 ## How it's wired
 
