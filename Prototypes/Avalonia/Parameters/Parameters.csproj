@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Parameters bundle - live read-only parameter list for a connected MAVLinkInterface,
+    the first chunk of the Config/Tuning "full parameter list" screen
+    (GCSViews/ConfigurationView/ConfigRawParams.cs / ConfigFriendlyParams.cs). Chunk 1
+    scope only: read the vehicle's real parameters, search/filter them. No in-place
+    editing yet - see README.md and .okf/config-tuning/parameters/overview.md for the
+    staged plan this is chunk 1 of.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.1" />
+    <PackageReference Include="ReactiveUI" Version="24.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\ExtLibs\ArduPilot\MissionPlanner.ArduPilot.csproj" />
+  </ItemGroup>
+
+</Project>
