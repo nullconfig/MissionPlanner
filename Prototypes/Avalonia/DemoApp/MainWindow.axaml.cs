@@ -521,7 +521,11 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             }
             catch (Exception ex)
             {
-                _connectStatusText.Text = "Failed: " + ex.Message;
+                // ex.Message alone (what the status bar shows) isn't enough to
+                // diagnose a real failure - no stack trace, no inner exception. Full
+                // detail goes to AppLog.LogFilePath instead.
+                AppLog.WriteException("ConnectAsync failed", ex);
+                _connectStatusText.Text = $"Failed: {ex.Message} (see {AppLog.LogFilePath})";
             }
             finally
             {
