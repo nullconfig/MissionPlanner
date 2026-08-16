@@ -205,8 +205,16 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
                      })
             {
                 var active = tag == key;
-                button.Classes.Remove(active ? "FilterChip" : "FilterChipActive");
-                button.Classes.Add(active ? "FilterChipActive" : "FilterChip");
+                // FilterChip must stay on regardless of state - it's the class that
+                // carries the pill shape (CornerRadius 999) and border; FilterChipActive
+                // only layers the selected fill on top. Removing FilterChip on activate
+                // (the previous bug here) left the active button on the base Button
+                // theme's square corners while its unselected siblings stayed oval - see
+                // .okf/log.md's "unselected buttons oval" entry.
+                if (active)
+                    button.Classes.Add("FilterChipActive");
+                else
+                    button.Classes.Remove("FilterChipActive");
                 panel.IsVisible = active;
             }
         }

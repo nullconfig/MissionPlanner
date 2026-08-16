@@ -68,8 +68,14 @@ namespace MissionPlanner.Prototypes.Avalonia.Terminal
             foreach (var (button, tag) in new[] { (_filterAllButton, "All"), (_filterInfoButton, "Info"), (_filterErrorButton, "Error") })
             {
                 var active = tag == filter;
-                button.Classes.Remove(active ? "FilterChip" : "FilterChipActive");
-                button.Classes.Add(active ? "FilterChipActive" : "FilterChip");
+                // FilterChip must stay on regardless of state - see the identical fix
+                // in DemoApp/MainWindow.axaml.cs's OnConfigTuningSubNavClick for why
+                // (removing it on activate lost the pill CornerRadius, leaving the
+                // active chip square while its unselected siblings stayed oval).
+                if (active)
+                    button.Classes.Add("FilterChipActive");
+                else
+                    button.Classes.Remove("FilterChipActive");
             }
         }
 

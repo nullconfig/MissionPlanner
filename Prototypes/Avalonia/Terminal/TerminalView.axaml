@@ -29,7 +29,11 @@
       <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
       <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="999"/>
+      <!-- Rectangular, not pill-shaped - CornerRadius=6 matches every other button
+           class in this app (Primary/Ghost/IconBox/etc.), per direct user feedback:
+           the 999 pill radius used before wasn't wanted at all, in either state, not
+           just inconsistent between them. See .okf/log.md. -->
+      <Setter Property="CornerRadius" Value="6"/>
     </Style>
     <Style Selector="Button.FilterChip:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="#1F2430"/>

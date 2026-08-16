@@ -34,7 +34,7 @@
   </UserControl.Styles>
 
   <StackPanel Spacing="16">
-    <TextBlock Text="▶ Simulation" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+    <TextBlock Text="▶ SIMULATION" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
 
     <Border Classes="Card">
       <StackPanel Spacing="10">
