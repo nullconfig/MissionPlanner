@@ -32,6 +32,13 @@
          above still governs light/dark the same way. -->
     <styling:FluentAvaloniaTheme />
 
+    <!-- Dock.Avalonia's own Fluent theme, registered alongside FluentAvaloniaTheme
+         above - Dock's docs show this as a bare, unprefixed element next to
+         FluentTheme, implying it resolves through the default avaloniaui xmlns via
+         the package's own XmlnsDefinition, same mechanism as every other unprefixed
+         Avalonia control here. -->
+    <DockFluentTheme />
+
     <!-- FluentAvaloniaTheme's own Button ControlTheme (see FluentAvalonia's
          ButtonStyles.axaml) sets an 83ms BrushTransition on PART_ContentPresenter's
          Background, on top of its own :pointerover rule that targets that same

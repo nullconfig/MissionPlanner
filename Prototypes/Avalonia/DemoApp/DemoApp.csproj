@@ -27,6 +27,28 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
     <PackageReference Include="FluentAvaloniaUI" Version="3.0.2" />
+    <!-- AvaloniaUI's own docking library (wieslawsoltes/Dock) - adopted after
+         researching ArduDeck (an Electron/React GCS the user referenced): its
+         distinctive dockable-panel/pop-out/saved-layout UX comes from "dockview"
+         (a React docking library), and Dock.Avalonia is the direct Avalonia
+         equivalent, not an Electron port of dockview itself. Version pinned to
+         12.1.0.1 to match this app's own Avalonia 12.1.1.
+
+         Dock.Model.Avalonia (the AvaloniaObject-based model flavor), not
+         Dock.Model.ReactiveUI - tried ReactiveUI first to match every ViewModel
+         elsewhere in this app, but it triggers a real, unresolved version conflict:
+         Dock.Model.ReactiveUI pulls in a newer ReactiveUI/Splat than
+         Avalonia.ReactiveUI 11.3.x (the newest available - no 12.x release exists
+         yet to match this app's Avalonia 12.1.1) can call into
+         (System.MissingMethodException: Splat.Locator.get_CurrentMutable() at
+         runtime, past what the compiler catches). Dock.Model.Avalonia has the
+         identical Document/Context API shape (confirmed via metadata inspection
+         before switching) and no ReactiveUI/Splat dependency at all, sidestepping
+         the conflict entirely - this app's own ViewModels keep using ReactiveUI
+         directly, unaffected; only this one Dock integration point differs. -->
+    <PackageReference Include="Dock.Avalonia" Version="12.1.0.1" />
+    <PackageReference Include="Dock.Avalonia.Themes.Fluent" Version="12.1.0.1" />
+    <PackageReference Include="Dock.Model.Avalonia" Version="12.1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
