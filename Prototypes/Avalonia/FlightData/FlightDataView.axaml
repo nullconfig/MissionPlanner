@@ -1,10 +1,30 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mapsui="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+             xmlns:local="clr-namespace:MissionPlanner.Prototypes.Avalonia.FlightData"
              x:Class="MissionPlanner.Prototypes.Avalonia.FlightData.FlightDataView">
 
   <!-- Self-contained visual language (matches ../DemoApp/App.axaml and the other
        bundles) since this UserControl has no App.axaml of its own once reused
        elsewhere. -->
+
+  <!--
+    Real screen (GCSViews/FlightData.cs) puts the HUD top-left and the map filling the
+    rest, side by side, per this bundle's own .okf/flight-data/overview.md (itself
+    cross-checked against ardupilot.org's docs, which disagree on HUD position - see
+    that doc's "Official docs cross-check" section). This prototype deliberately does
+    NOT copy that side-by-side split: the map fills the whole tab and the live values
+    float on top of it instead, ArduDeck-style (a screenshot the user shared, an
+    OSM-based GCS with this exact overlay pattern) - direct user request, not a
+    misreading of the real screen. Real MP's own top-left HUD data (attitude, heading,
+    alt, speed, battery, GPS) becomes the top status bar below plus the floating
+    bottom-left card; real MP's "Gauges" tab (one of the 14 real Control-and-Status
+    tabs) is exactly what's condensed into that floating card rather than kept as a
+    separate tab, per the user's own words: "gauges which we can do like ardudeck and
+    just overlay that onto the map." Real MP's "Messages" tab is NOT duplicated here -
+    DemoApp's persistent bottom Terminal console already covers that (see
+    DemoApp/MainWindow.axaml's BottomConsolePanel), so this bundle doesn't need its own.
+  -->
 
   <UserControl.Resources>
     <SolidColorBrush x:Key="CardBg" Color="#171A21"/>
@@ -14,6 +34,11 @@
     <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
     <SolidColorBrush x:Key="AccentBlue" Color="#4C8DFF"/>
     <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
+    <!-- Overlay card background is deliberately translucent (unlike the opaque
+         Border.Card everywhere else in this app) - it sits on top of live map tiles,
+         and a fully opaque card would hide exactly the map area a floating HUD
+         overlay is supposed to coexist with. -->
+    <SolidColorBrush x:Key="OverlayBg" Color="#CC12151B"/>
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -25,91 +50,168 @@
       <Setter Property="Padding" Value="16"/>
       <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
     </Style>
-    <Style Selector="TextBlock.StatLabel">
-      <Setter Property="FontSize" Value="11"/>
-      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
-      <Setter Property="Margin" Value="0,0,0,4"/>
+    <Style Selector="Border.Overlay">
+      <Setter Property="Background" Value="{StaticResource OverlayBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="12"/>
+      <Setter Property="BoxShadow" Value="0 2 10 0 #40000000"/>
     </Style>
-    <Style Selector="TextBlock.StatValue">
-      <Setter Property="FontSize" Value="20"/>
+    <!-- OverlayLabel/OverlayValue, not StatLabel/StatValue - the floating card on the
+         map needs noticeably smaller text than the canonical StatLabel/StatValue
+         classes (DemoApp/App.axaml, sized for full-size stat cards elsewhere), and
+         silently overriding those two classes at smaller sizes here would be exactly
+         the kind of same-name-different-value drift check-design-drift.py exists to
+         catch - a distinctly-named pair keeps both variants legitimate rather than
+         picking a fight over whose size is canonical. -->
+    <Style Selector="TextBlock.OverlayLabel">
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="Margin" Value="0,0,0,2"/>
+    </Style>
+    <Style Selector="TextBlock.OverlayValue">
+      <Setter Property="FontSize" Value="14"/>
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+    </Style>
+    <Style Selector="TextBlock.TopStat">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.Pill">
       <Setter Property="Background" Value="#1F2430"/>
       <Setter Property="CornerRadius" Value="999"/>
       <Setter Property="Padding" Value="10,4"/>
     </Style>
+
+    <!-- Attitude/Compass toggle - copied from DemoApp/App.axaml's Button.FilterChip/
+         FilterChipActive (self-contained-per-bundle, same reasoning as every other
+         shared color/component token here), CornerRadius=6 already - not the old 999
+         pill shape that class briefly had before this session's own fix (see
+         .okf/log.md's "unselected FilterChip buttons oval" entry), so this bundle
+         never inherits the bug that fix corrected elsewhere. -->
+    <Style Selector="Button.FilterChip">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="Button.FilterChip:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1F2430"/>
+    </Style>
+    <Style Selector="Button.FilterChipActive">
+      <Setter Property="Background" Value="{StaticResource AccentBlue}"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
   </UserControl.Styles>
 
   <DockPanel>
-    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,16">
-      <TextBlock Grid.Column="0" Text="◉ Flight Data" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
-      <Border Grid.Column="1" Classes="Pill" Margin="0,0,8,0">
+    <!-- Top status bar - a real row above the map (matching the ArduDeck reference
+         screenshot's own DISARMED/mode/HDG/ALT/SPD/BAT/SAT strip), not a floating
+         overlay itself. Mode/armed pills carry over unchanged from the pre-map
+         version of this view; the rest condenses what used to be full-size stat
+         cards into compact inline readouts. -->
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+      <TextBlock Grid.Column="0" Text="◉ DATA" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+      <Border Grid.Column="1" Classes="Pill" Margin="12,0,0,0">
         <TextBlock x:Name="ModeText" Text="-" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}"/>
       </Border>
-      <Border Grid.Column="2" Classes="Pill">
+      <Border Grid.Column="2" Classes="Pill" Margin="8,0,0,0">
         <TextBlock x:Name="ArmedText" Text="DISARMED" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/>
       </Border>
+
+      <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+        <TextBlock Classes="OverlayLabel" Text="HDG" VerticalAlignment="Center"/>
+        <TextBlock x:Name="HeadingText" Classes="TopStat" Text="0°"/>
+      </StackPanel>
+      <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+        <TextBlock Classes="OverlayLabel" Text="ALT" VerticalAlignment="Center"/>
+        <TextBlock x:Name="AltitudeText" Classes="TopStat" Text="0.0 m"/>
+      </StackPanel>
+      <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+        <TextBlock Classes="OverlayLabel" Text="SPD" VerticalAlignment="Center"/>
+        <TextBlock x:Name="GroundSpeedText" Classes="TopStat" Text="0.0 m/s"/>
+      </StackPanel>
+      <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+        <TextBlock Classes="OverlayLabel" Text="BAT" VerticalAlignment="Center"/>
+        <TextBlock x:Name="BatteryText" Classes="TopStat" Text="0.00 V · 0%"/>
+      </StackPanel>
+      <StackPanel Grid.Column="8" Orientation="Horizontal" Spacing="4" Margin="16,0,0,0">
+        <TextBlock Classes="OverlayLabel" Text="SAT" VerticalAlignment="Center"/>
+        <TextBlock x:Name="SatText" Classes="TopStat" Text="0"/>
+      </StackPanel>
     </Grid>
 
-    <UniformGrid Columns="3" Rows="3">
-      <Border Classes="Card" Margin="0,0,8,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="ATTITUDE"/>
-          <TextBlock x:Name="AttitudeText" Classes="StatValue" Text="roll 0.0° · pitch 0.0°" FontSize="15"/>
-        </StackPanel>
-      </Border>
-      <Border Classes="Card" Margin="0,0,8,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="HEADING"/>
-          <TextBlock x:Name="HeadingText" Classes="StatValue" Text="0°"/>
-        </StackPanel>
-      </Border>
-      <Border Classes="Card" Margin="0,0,0,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="ALTITUDE"/>
-          <TextBlock x:Name="AltitudeText" Classes="StatValue" Text="0.0 m"/>
-        </StackPanel>
-      </Border>
+    <!-- Map fills everything below the status bar; the remaining detail values
+         (attitude, air speed, current, GPS fix, position) float on top of it as one
+         compact bottom-left overlay card instead of a separate panel/tab - the
+         "gauges... overlay that onto the map" part of the request. Panel (not Grid)
+         since children just need to stack in the same space, later child on top -
+         no row/column layout needed between the map and its overlay. -->
+    <Panel>
+      <mapsui:MapControl x:Name="Map"/>
 
-      <Border Classes="Card" Margin="0,0,8,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="GROUND SPEED"/>
-          <TextBlock x:Name="GroundSpeedText" Classes="StatValue" Text="0.0 m/s"/>
+      <!-- Attitude/compass toggle, top-left - matches "the top left of Mission
+           Planner" (the real screen's own HUD position, per the official docs; see
+           this file's header comment for why this prototype's layout otherwise
+           doesn't copy that side-by-side split). Only one gauge is ever visible -
+           the toggle *replaces* one with the other, not both at once, per the user's
+           own request. Both AttitudeIndicator and CompassGauge are still constructed
+           and kept updated regardless of which is visible (see
+           FlightDataView.axaml.cs) - simpler than only updating the visible one, and
+           the cost of updating an invisible gauge is negligible. -->
+      <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16" Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <Button x:Name="AttitudeToggle" Content="Attitude" Tag="Attitude" Click="OnGaugeToggleClick"
+                  Classes="FilterChip FilterChipActive" FontSize="11" Padding="10,3"/>
+          <Button x:Name="CompassToggle" Content="Compass" Tag="Compass" Click="OnGaugeToggleClick"
+                  Classes="FilterChip" FontSize="11" Padding="10,3"/>
         </StackPanel>
-      </Border>
-      <Border Classes="Card" Margin="0,0,8,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="AIR SPEED"/>
-          <TextBlock x:Name="AirSpeedText" Classes="StatValue" Text="0.0 m/s"/>
-        </StackPanel>
-      </Border>
-      <Border Classes="Card" Margin="0,0,0,8">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="BATTERY"/>
-          <TextBlock x:Name="BatteryText" Classes="StatValue" Text="0.00 V · 0%" FontSize="15"/>
-        </StackPanel>
-      </Border>
+        <Panel>
+          <local:AttitudeIndicator x:Name="AttitudeGauge" IsVisible="True"/>
+          <local:CompassGauge x:Name="CompassWidget" IsVisible="False"/>
+        </Panel>
+      </StackPanel>
 
-      <Border Classes="Card" Margin="0,0,8,0">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="CURRENT"/>
-          <TextBlock x:Name="CurrentText" Classes="StatValue" Text="0.0 A"/>
+      <!-- Street/Satellite map-style toggle, top-right - deliberately the opposite
+           corner from the attitude/compass toggle so the two unrelated controls
+           don't crowd each other. Same FilterChip/FilterChipActive toggle pattern. -->
+      <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16">
+        <Button x:Name="StreetToggle" Content="Street" Click="OnMapStyleToggleClick"
+                Classes="FilterChip FilterChipActive" FontSize="11" Padding="10,3"/>
+        <Button x:Name="SatelliteToggle" Content="Satellite" Click="OnMapStyleToggleClick"
+                Classes="FilterChip" FontSize="11" Padding="10,3"/>
+      </StackPanel>
+
+      <Border Classes="Overlay" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16">
+        <StackPanel Spacing="8" MinWidth="150">
+          <StackPanel>
+            <TextBlock Classes="OverlayLabel" Text="ATTITUDE"/>
+            <TextBlock x:Name="AttitudeText" Classes="OverlayValue" Text="roll 0.0° · pitch 0.0°" FontSize="12"/>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="OverlayLabel" Text="AIR SPEED"/>
+            <TextBlock x:Name="AirSpeedText" Classes="OverlayValue" Text="0.0 m/s"/>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="OverlayLabel" Text="CURRENT"/>
+            <TextBlock x:Name="CurrentText" Classes="OverlayValue" Text="0.0 A"/>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="OverlayLabel" Text="GPS"/>
+            <TextBlock x:Name="GpsText" Classes="OverlayValue" Text="no fix · 0 sats" FontSize="12"/>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Classes="OverlayLabel" Text="POSITION"/>
+            <TextBlock x:Name="PositionText" Classes="OverlayValue" Text="0.000000, 0.000000" FontSize="11"/>
+          </StackPanel>
         </StackPanel>
       </Border>
-      <Border Classes="Card" Margin="0,0,8,0">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="GPS"/>
-          <TextBlock x:Name="GpsText" Classes="StatValue" Text="no fix · 0 sats" FontSize="15"/>
-        </StackPanel>
-      </Border>
-      <Border Classes="Card">
-        <StackPanel>
-          <TextBlock Classes="StatLabel" Text="POSITION"/>
-          <TextBlock x:Name="PositionText" Classes="StatValue" Text="0.000000, 0.000000" FontSize="13"/>
-        </StackPanel>
-      </Border>
-    </UniformGrid>
+    </Panel>
   </DockPanel>
 </UserControl>
