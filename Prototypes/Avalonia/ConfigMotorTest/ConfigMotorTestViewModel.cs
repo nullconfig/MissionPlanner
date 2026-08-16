@@ -1,13 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
+using ReactiveUI.Primitives;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using MissionPlanner.Utilities;
 using Newtonsoft.Json;
+using ReactiveUI;
 
 namespace MissionPlanner.Prototypes.Avalonia.ConfigMotorTest
 {
@@ -47,10 +46,8 @@ namespace MissionPlanner.Prototypes.Avalonia.ConfigMotorTest
         void OpenUrl(string url);
     }
 
-    public class ConfigMotorTestViewModel : INotifyPropertyChanged
+    public class ConfigMotorTestViewModel : ReactiveObject
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         private readonly MAVLinkInterface _mav;
         private readonly IDialogService _dialogs;
 
@@ -60,35 +57,35 @@ namespace MissionPlanner.Prototypes.Avalonia.ConfigMotorTest
         public int ThrottlePercent
         {
             get => _throttlePercent;
-            set { _throttlePercent = value; OnPropertyChanged(); }
+            set => this.RaiseAndSetIfChanged(ref _throttlePercent, value);
         }
 
         private int _durationSeconds = 2;
         public int DurationSeconds
         {
             get => _durationSeconds;
-            set { _durationSeconds = value; OnPropertyChanged(); }
+            set => this.RaiseAndSetIfChanged(ref _durationSeconds, value);
         }
 
         private string _frameClassText = "";
         public string FrameClassText
         {
             get => _frameClassText;
-            private set { _frameClassText = value; OnPropertyChanged(); }
+            private set => this.RaiseAndSetIfChanged(ref _frameClassText, value);
         }
 
         private string _frameTypeText = "";
         public string FrameTypeText
         {
             get => _frameTypeText;
-            private set { _frameTypeText = value; OnPropertyChanged(); }
+            private set => this.RaiseAndSetIfChanged(ref _frameTypeText, value);
         }
 
         private bool _isBusy;
         public bool IsBusy
         {
             get => _isBusy;
-            private set { _isBusy = value; OnPropertyChanged(); }
+            private set => this.RaiseAndSetIfChanged(ref _isBusy, value);
         }
 
         private int _motorMax;
@@ -117,26 +114,31 @@ namespace MissionPlanner.Prototypes.Avalonia.ConfigMotorTest
 
         private FrameLayout _frameLayout;
 
-        public ICommand TestMotorCommand { get; }
-        public ICommand TestAllCommand { get; }
-        public ICommand TestAllSequenceCommand { get; }
-        public ICommand StopAllCommand { get; }
-        public ICommand SetSpinArmCommand { get; }
-        public ICommand SetSpinMinCommand { get; }
-        public ICommand OpenDocsCommand { get; }
+        // ReactiveCommand instead of the hand-rolled RelayCommand/AsyncRelayCommand
+        // (removed 2026-08-15, see RelayCommand.cs's git history) - same ICommand
+        // surface Avalonia's Command="{Binding ...}" needs, plus re-entrancy guarding
+        // (a second click while one is still running is ignored) for free, which
+        // AsyncRelayCommand had to hand-implement via its own _isExecuting flag.
+        public ReactiveCommand<int, RxVoid> TestMotorCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> TestAllCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> TestAllSequenceCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> StopAllCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> SetSpinArmCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> SetSpinMinCommand { get; }
+        public ReactiveCommand<RxVoid, RxVoid> OpenDocsCommand { get; }
 
         public ConfigMotorTestViewModel(MAVLinkInterface mav, IDialogService dialogs)
         {
             _mav = mav;
             _dialogs = dialogs;
 
-            TestMotorCommand = new AsyncRelayCommand(param => TestMotorAsync((int)param));
-            TestAllCommand = new AsyncRelayCommand(_ => TestAllAsync());
-            TestAllSequenceCommand = new AsyncRelayCommand(_ => TestAllSequenceAsync());
-            StopAllCommand = new AsyncRelayCommand(_ => StopAllAsync());
-            SetSpinArmCommand = new AsyncRelayCommand(_ => SetSpinArmAsync());
-            SetSpinMinCommand = new AsyncRelayCommand(_ => SetSpinMinAsync());
-            OpenDocsCommand = new RelayCommand(_ => OpenDocs());
+            TestMotorCommand = ReactiveCommand.CreateFromTask<int>(TestMotorAsync);
+            TestAllCommand = ReactiveCommand.CreateFromTask(TestAllAsync);
+            TestAllSequenceCommand = ReactiveCommand.CreateFromTask(TestAllSequenceAsync);
+            StopAllCommand = ReactiveCommand.CreateFromTask(StopAllAsync);
+            SetSpinArmCommand = ReactiveCommand.CreateFromTask(SetSpinArmAsync);
+            SetSpinMinCommand = ReactiveCommand.CreateFromTask(SetSpinMinAsync);
+            OpenDocsCommand = ReactiveCommand.Create(OpenDocs);
         }
 
         // Equivalent of Activate() in the WinForms version - reads live vehicle state and
@@ -423,8 +425,5 @@ namespace MissionPlanner.Prototypes.Avalonia.ConfigMotorTest
                 // best effort, same as the WinForms original
             }
         }
-
-        private void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

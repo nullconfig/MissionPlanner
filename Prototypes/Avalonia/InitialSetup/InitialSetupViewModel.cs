@@ -1,5 +1,4 @@
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using ReactiveUI;
 
 namespace MissionPlanner.Prototypes.Avalonia.InitialSetup
 {
@@ -8,11 +7,11 @@ namespace MissionPlanner.Prototypes.Avalonia.InitialSetup
     // ConfigMotorTestViewModel does (see its GetMotorMax/SetFrameClassAndType). Everything
     // past identification (the actual calibration wizard steps) is not implemented - see
     // README.md for the real GCSViews/InitialSetup.cs feature list this would need to
-    // grow into for closer 1:1 parity.
-    public class InitialSetupViewModel : INotifyPropertyChanged
+    // grow into for closer 1:1 parity. ReactiveObject (ReactiveUI, added 2026-08-15) for
+    // consistency with the other bundles' ViewModels, even though every property here is
+    // get-only/set-once - see ConfigMotorTestViewModel for one that actually mutates.
+    public class InitialSetupViewModel : ReactiveObject
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public string FirmwareText { get; }
         public string VehicleTypeText { get; }
         public string FrameClassText { get; }
@@ -30,8 +29,5 @@ namespace MissionPlanner.Prototypes.Avalonia.InitialSetup
                 ? ((int)mav.MAV.param["FRAME_TYPE"].Value).ToString()
                 : "-";
         }
-
-        private void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }
