@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.FlightData.AttitudeIndicator"
+             Width="150" Height="150">
+
+  <!--
+    A simplified artificial-horizon widget - not a port of the real hud1 GDI+ control
+    (GCSViews/FlightData.Designer.cs), just a reproduction of its visual behavior
+    against the same CurrentState roll/pitch data. Nested inside FlightDataView, not a
+    standalone bundle - it deliberately has no UserControl.Resources of its own and
+    relies on TextPrimary/AccentBlue/AccentOrange/CardBorder being defined by whatever
+    hosts it (FlightDataView.axaml does), since Avalonia StaticResource lookup walks up
+    the logical tree. Sky = AccentBlue, ground = AccentOrange - both already-tokenized
+    colors in this bundle rather than new untracked hexes.
+
+    Pitch/roll sign conventions (which way the horizon should move for nose-up vs.
+    nose-down, which way it should rotate for a right vs. left bank) are implemented
+    per the standard real-world artificial-horizon convention, but not yet confirmed
+    against a real connected vehicle - flagged in README.md's "What's next" the same
+    way the HUD-position discrepancy is flagged in .okf/flight-data/overview.md, not
+    silently assumed correct.
+  -->
+
+  <Grid>
+    <!-- Clipped viewport - the rotating/translating horizon disk below is
+         deliberately larger than this circle so no corner goes empty at the
+         extremes of the pitch/roll range this scale supports. -->
+    <Panel Width="150" Height="150" ClipToBounds="True">
+      <Panel.Clip>
+        <EllipseGeometry Center="75,75" RadiusX="74" RadiusY="74"/>
+      </Panel.Clip>
+
+      <Grid x:Name="HorizonDisk" Width="360" Height="360" RenderTransformOrigin="50%,50%">
+        <Grid.RenderTransform>
+          <TransformGroup>
+            <!-- Order matters: translate (pitch) happens in the disk's own
+                 unrotated frame, then the whole translated disk rotates (roll) -
+                 matches how a real AI's horizon both tilts and shifts together. -->
+            <TranslateTransform Y="0"/>
+            <RotateTransform Angle="0"/>
+          </TransformGroup>
+        </Grid.RenderTransform>
+
+        <StackPanel VerticalAlignment="Center">
+          <Rectangle Width="360" Height="180" Fill="{StaticResource AccentBlue}"/>
+          <Rectangle Width="360" Height="180" Fill="{StaticResource AccentOrange}"/>
+        </StackPanel>
+        <Line StartPoint="0,180" EndPoint="360,180" Stroke="White" StrokeThickness="2"
+              VerticalAlignment="Center"/>
+      </Grid>
+    </Panel>
+
+    <!-- Bezel ring, on top of the clipped content so its stroke isn't itself clipped. -->
+    <Ellipse Width="150" Height="150" Stroke="{StaticResource CardBorder}" StrokeThickness="2"/>
+
+    <!-- Fixed aircraft symbol - always level, never rotates/translates with the
+         horizon (it represents the airframe, not the world). -->
+    <Line StartPoint="30,75" EndPoint="62,75" Stroke="{StaticResource TextPrimary}" StrokeThickness="3"/>
+    <Line StartPoint="88,75" EndPoint="120,75" Stroke="{StaticResource TextPrimary}" StrokeThickness="3"/>
+    <Ellipse Width="6" Height="6" Fill="{StaticResource TextPrimary}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+    <!-- Fixed roll-reference pointer at 12 o'clock. -->
+    <Polygon Points="75,8 70,18 80,18" Fill="{StaticResource TextPrimary}"/>
+  </Grid>
+</UserControl>

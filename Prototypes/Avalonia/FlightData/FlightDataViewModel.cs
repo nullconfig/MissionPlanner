@@ -42,8 +42,36 @@ namespace MissionPlanner.Prototypes.Avalonia.FlightData
         private string _gpsText = "no fix · 0 sats";
         public string GpsText { get => _gpsText; private set => this.RaiseAndSetIfChanged(ref _gpsText, value); }
 
+        // Just the satellite count, separate from GpsText's combined "fix · sats"
+        // string - the top status bar's compact SAT readout doesn't want the fix-type
+        // text (that stays in GpsText, in the floating overlay card).
+        private string _satCountText = "0";
+        public string SatCountText { get => _satCountText; private set => this.RaiseAndSetIfChanged(ref _satCountText, value); }
+
         private string _positionText = "0.000000, 0.000000";
         public string PositionText { get => _positionText; private set => this.RaiseAndSetIfChanged(ref _positionText, value); }
+
+        // Raw lat/lng (not just PositionText's formatted string) - the map's vehicle
+        // marker needs actual doubles to feed SphericalMercator.FromLonLat, not
+        // something to re-parse out of display text.
+        private double _lat;
+        public double Lat { get => _lat; private set => this.RaiseAndSetIfChanged(ref _lat, value); }
+
+        private double _lng;
+        public double Lng { get => _lng; private set => this.RaiseAndSetIfChanged(ref _lng, value); }
+
+        // Raw heading in degrees - same reasoning as Lat/Lng, needed for marker
+        // rotation (a later chunk; HeadingText alone can't drive a rotation transform).
+        private double _headingDegrees;
+        public double HeadingDegrees { get => _headingDegrees; private set => this.RaiseAndSetIfChanged(ref _headingDegrees, value); }
+
+        // Raw roll/pitch in degrees - AttitudeText alone (a formatted string) can't
+        // drive AttitudeIndicator's rotation/translation transforms.
+        private double _rollDegrees;
+        public double RollDegrees { get => _rollDegrees; private set => this.RaiseAndSetIfChanged(ref _rollDegrees, value); }
+
+        private double _pitchDegrees;
+        public double PitchDegrees { get => _pitchDegrees; private set => this.RaiseAndSetIfChanged(ref _pitchDegrees, value); }
 
         private string _modeText = "-";
         public string ModeText { get => _modeText; private set => this.RaiseAndSetIfChanged(ref _modeText, value); }
@@ -77,7 +105,13 @@ namespace MissionPlanner.Prototypes.Avalonia.FlightData
 
             var fix = (MAVLink.GPS_FIX_TYPE)(int)cs.gpsstatus;
             GpsText = $"{fix} · {cs.satcount:0} sats";
+            SatCountText = $"{cs.satcount:0}";
             PositionText = $"{cs.lat:0.000000}, {cs.lng:0.000000}";
+            Lat = cs.lat;
+            Lng = cs.lng;
+            HeadingDegrees = cs.yaw;
+            RollDegrees = cs.roll;
+            PitchDegrees = cs.pitch;
 
             ModeText = cs.mode ?? "-";
             Armed = cs.armed;

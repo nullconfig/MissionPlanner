@@ -22,7 +22,7 @@
 
   <Border Classes="Card">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="380">
-      <TextBlock Text="?  Help" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+      <TextBlock Text="?  HELP" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
       <TextBlock Text="This is an Avalonia/native-Linux prototype of Mission Planner, not the full app."
                  Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
       <HyperlinkButton Content="ArduPilot documentation ↗" Click="OnOpenArduPilotDocsClick" HorizontalAlignment="Center"/>

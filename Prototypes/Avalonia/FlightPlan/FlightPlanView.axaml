@@ -22,7 +22,7 @@
 
   <Border Classes="Card">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="420">
-      <TextBlock Text="⚑  Flight Plan" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+      <TextBlock Text="⚑  PLAN" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
       <TextBlock Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center">
         Not implemented in this prototype - a pure scaffold bundle waiting for a
         contributor. The real screen (GCSViews/FlightPlanner.cs) is a mission editor:

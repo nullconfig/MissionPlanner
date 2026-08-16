@@ -49,40 +49,46 @@
         <ScrollViewer x:Name="NavScroll" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
                       HorizontalAlignment="Left" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="2">
+            <!-- Labels are the real on-screen text (MainV2.resx's MenuFlightData/etc.
+                 .Text values, confirmed against a running-app screenshot 2026-08-16) -
+                 a single short word per tab, not this bundle's own prose names
+                 ("Flight Data" etc., kept in .okf/mission-planner.md for readability
+                 there but never the literal button text). See
+                 .okf/mission-planner.md's "Corrections" section. -->
             <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab NavTabActive">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="◉" FontSize="13"/>
-                <TextBlock Text="Flight Data" FontSize="12"/>
+                <TextBlock Text="DATA" FontSize="12"/>
               </StackPanel>
             </Button>
             <Button x:Name="NavFlightPlan" Tag="FlightPlan" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="⚑" FontSize="13"/>
-                <TextBlock Text="Flight Plan" FontSize="12"/>
+                <TextBlock Text="PLAN" FontSize="12"/>
               </StackPanel>
             </Button>
             <Button x:Name="NavInitialSetup" Tag="InitialSetup" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="⚙" FontSize="13"/>
-                <TextBlock Text="Initial Setup" FontSize="12"/>
+                <TextBlock Text="SETUP" FontSize="12"/>
               </StackPanel>
             </Button>
             <Button x:Name="NavConfigTuning" Tag="ConfigTuning" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="≡" FontSize="13"/>
-                <TextBlock Text="Config/Tuning" FontSize="12"/>
+                <TextBlock Text="CONFIG" FontSize="12"/>
               </StackPanel>
             </Button>
             <Button x:Name="NavSimulation" Tag="Simulation" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="▶" FontSize="13"/>
-                <TextBlock Text="Simulation" FontSize="12"/>
+                <TextBlock Text="SIMULATION" FontSize="12"/>
               </StackPanel>
             </Button>
             <Button x:Name="NavHelp" Tag="Help" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="?" FontSize="13"/>
-                <TextBlock Text="Help" FontSize="12"/>
+                <TextBlock Text="HELP" FontSize="12"/>
               </StackPanel>
             </Button>
           </StackPanel>
@@ -97,12 +103,12 @@
                 HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="False">
           <Button.Flyout>
             <MenuFlyout Placement="BottomEdgeAlignedLeft">
-              <MenuItem Header="◉  Flight Data" Tag="FlightData" Click="OnNavClick"/>
-              <MenuItem Header="⚑  Flight Plan" Tag="FlightPlan" Click="OnNavClick"/>
-              <MenuItem Header="⚙  Initial Setup" Tag="InitialSetup" Click="OnNavClick"/>
-              <MenuItem Header="≡  Config/Tuning" Tag="ConfigTuning" Click="OnNavClick"/>
-              <MenuItem Header="▶  Simulation" Tag="Simulation" Click="OnNavClick"/>
-              <MenuItem Header="?  Help" Tag="Help" Click="OnNavClick"/>
+              <MenuItem Header="◉  DATA" Tag="FlightData" Click="OnNavClick"/>
+              <MenuItem Header="⚑  PLAN" Tag="FlightPlan" Click="OnNavClick"/>
+              <MenuItem Header="⚙  SETUP" Tag="InitialSetup" Click="OnNavClick"/>
+              <MenuItem Header="≡  CONFIG" Tag="ConfigTuning" Click="OnNavClick"/>
+              <MenuItem Header="▶  SIMULATION" Tag="Simulation" Click="OnNavClick"/>
+              <MenuItem Header="?  HELP" Tag="Help" Click="OnNavClick"/>
             </MenuFlyout>
           </Button.Flyout>
         </Button>
@@ -167,7 +173,7 @@
       <Grid x:Name="FlightDataPanel" IsVisible="True">
         <Border x:Name="FlightDataPlaceholderCard" Classes="Card">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-            <TextBlock Text="◉  Flight Data" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="◉  DATA" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
             <TextBlock Text="Not connected. Use the connection controls in the banner to load live telemetry."
                        Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
           </StackPanel>
@@ -180,7 +186,7 @@
       <Grid x:Name="InitialSetupPanel" IsVisible="False">
         <Border x:Name="InitialSetupPlaceholderCard" Classes="Card">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-            <TextBlock Text="⚙  Initial Setup" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="⚙  SETUP" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
             <TextBlock Text="Not connected. Use the connection controls in the banner to identify the vehicle."
                        Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
           </StackPanel>
@@ -206,7 +212,7 @@
         <Grid Grid.Row="1" x:Name="MotorTestPanel" IsVisible="True">
           <Border x:Name="ConfigTuningPlaceholderCard" Classes="Card">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-              <TextBlock Text="≡  Config/Tuning → Motor Test" FontSize="16" FontWeight="Bold"
+              <TextBlock Text="≡  CONFIG → Motor Test" FontSize="16" FontWeight="Bold"
                          Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
               <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) motor test screen."
                          Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
@@ -218,7 +224,7 @@
         <Grid Grid.Row="1" x:Name="ParametersPanel" IsVisible="False">
           <Border x:Name="ParametersPlaceholderCard" Classes="Card">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-              <TextBlock Text="▤  Config/Tuning → Parameters" FontSize="16" FontWeight="Bold"
+              <TextBlock Text="▤  CONFIG → Parameters" FontSize="16" FontWeight="Bold"
                          Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
               <TextBlock Text="Not connected. Use the connection controls in the banner to load the live parameter list."
                          Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
