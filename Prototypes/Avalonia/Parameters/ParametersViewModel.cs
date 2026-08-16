@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using MissionPlanner.Utilities;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 
 namespace MissionPlanner.Prototypes.Avalonia.Parameters
 {
@@ -98,9 +100,49 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             private set => this.RaiseAndSetIfChanged(ref _statusText, value);
         }
 
+        // Matches ConfigRawParams.cs's chk_none_default ("None Default") - visible
+        // only when the DataGridView row's Default_value cell differs from its Value
+        // cell (ConfigRawParams.cs's own filterList(), the chk_none_default.Checked
+        // branch). The real screen's other filter checkbox, "Modified" (chk_modified),
+        // tracks rows present in a _changes dict built by in-place cell edits - there's
+        // nothing to track it against yet since this bundle has no write-back (that's
+        // chunk 1 of the remaining list), so it's present in the sidebar for visual
+        // parity with the real screen but left disabled rather than faked.
+        private bool _showNoneDefaultOnly;
+        public bool ShowNoneDefaultOnly
+        {
+            get => _showNoneDefaultOnly;
+            set
+            {
+                this.RaiseAndSetIfChanged(ref _showNoneDefaultOnly, value);
+                ApplyFilter();
+            }
+        }
+
+        // Matches ConfigRawParams.cs's BUT_refreshTable_Click ("Refresh Table"), which
+        // just calls processToScreen() to reprocess the vehicle's already-downloaded
+        // MAV.param into the grid - no MAVLink round-trip, unlike the real screen's
+        // separate "Refresh Params" button (BUT_rerequestparams_Click, a real
+        // getParamList() re-download gated behind an armed-vehicle warning dialog) -
+        // that one's a real vehicle action, left disabled in the sidebar for now rather
+        // than wired without that same safety gate.
+        public ReactiveCommand<RxVoid, RxVoid> RefreshTableCommand { get; }
+
         public ParametersViewModel(MAVLinkInterface mav)
         {
             _mav = mav;
+            RefreshTableCommand = ReactiveCommand.CreateFromTask(RefreshTableAsync);
+        }
+
+        private async Task RefreshTableAsync()
+        {
+            var (rows, groupTree) = await Task.Run(() =>
+            {
+                var builtRows = BuildRows();
+                var builtTree = BuildGroupTree(builtRows.Select(r => r.Name).ToList());
+                return (builtRows, builtTree);
+            });
+            SetRows(rows, groupTree);
         }
 
         // Equivalent of ConfigFriendlyParams.FilterParamList() building its param list
@@ -263,7 +305,9 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             var query = _searchText?.Trim();
 
             var matches = _allRows.Where(r =>
-                PassesGroupFilter(r.Name, groupPrefix) && PassesSearchFilter(r, query));
+                PassesGroupFilter(r.Name, groupPrefix) &&
+                PassesSearchFilter(r, query) &&
+                (!_showNoneDefaultOnly || r.ValueText != r.DefaultText));
 
             foreach (var row in matches)
                 Rows.Add(row);

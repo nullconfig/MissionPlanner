@@ -93,11 +93,61 @@
     <Style Selector="TreeViewItem:selected TextBlock">
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
     </Style>
+
+    <!-- Right-side action panel (ConfigRawParams.cs's tableLayoutPanel1, Dock=Right) -
+         real button/label/order verified against ConfigRawParams.Designer.cs/.resx, not
+         guessed. Most of these are disabled: they need write-back, file I/O, or a live
+         re-download that isn't built yet (see each button's own ToolTip.Tip below and
+         .okf/config-tuning/parameters/overview.md's chunk list) - present for visual
+         parity with the real screen, not faked as functional. -->
+    <Style Selector="Button.SidebarAction">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
+      <Setter Property="FontSize" Value="11"/>
+    </Style>
+    <Style Selector="Button.SidebarAction:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#262B36"/>
+    </Style>
+    <Style Selector="Button.SidebarAction:disabled">
+      <Setter Property="Opacity" Value="0.4"/>
+    </Style>
+    <Style Selector="TextBlock.SidebarNote">
+      <Setter Property="FontSize" Value="10"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="Margin" Value="0,4,0,10"/>
+    </Style>
+    <Style Selector="ComboBox.SidebarCombo">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="Margin" Value="0,0,0,6"/>
+    </Style>
+    <Style Selector="CheckBox.SidebarCheck">
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Margin" Value="0,2,0,2"/>
+    </Style>
   </UserControl.Styles>
 
   <Border Classes="Card" Padding="16">
     <DockPanel>
 
+      <!-- Search lives here, not in the action panel below - a deliberate departure
+           from ConfigRawParams.cs's real layout (its txt_search sits inside
+           tableLayoutPanel1, docked right). Moved back to the top per direct user
+           feedback: search is used far more often than the rest of the action panel,
+           so it earns the prominent spot rather than being buried among disabled
+           placeholder buttons. -->
       <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
         <TextBlock Grid.Column="0" Text="PARAMETERS" Classes="CardHeading" VerticalAlignment="Center"/>
         <TextBox Grid.Column="1" Text="{Binding SearchText}" Watermark="Search parameters (matches any column, e.g. ATC_RAT)"
@@ -106,12 +156,14 @@
                    FontSize="12" VerticalAlignment="Center"/>
       </Grid>
 
-      <!-- Tree (left) + grid (right), matching ConfigRawParams.cs's own
-           splitContainer1 (Panel1 = treeView1, Panel2 = Params). Selecting a node
+      <!-- Tree (left) + grid (middle) + action panel (right), matching
+           ConfigRawParams.cs's own splitContainer1 (Panel1 = treeView1, Panel2 = {Params,
+           tableLayoutPanel1 Dock=Right}) - the real screen's three-pane layout, not a
+           two-pane one with the sidebar bolted on separately. Selecting a tree node
            narrows the grid to that group's params (see ParametersViewModel's
            SelectedGroup/ApplyFilter) - not a separate pane that needs its own
            scroll/search, just another filter over the same Rows. -->
-      <Grid ColumnDefinitions="200,12,*">
+      <Grid ColumnDefinitions="200,12,*,12,200">
         <Border Grid.Column="0" Background="#12151B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6">
           <TreeView ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}" Padding="4">
             <TreeView.ItemTemplate>
@@ -139,6 +191,53 @@
             <DataGridTextColumn Header="Desc" Binding="{Binding Description}" Width="*"/>
           </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Action panel - real control set/order verified against
+             ConfigRawParams.Designer.cs's tableLayoutPanel1 (BUT_load through
+             BUT_refreshTable, rows 0-16). Disabled buttons carry a ToolTip.Tip
+             explaining what real chunk wires them up - not silently broken, just
+             honestly not-yet-implemented. -->
+        <Border Grid.Column="4" Background="#12151B" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="8">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <Button Classes="SidebarAction" Content="Load from file" IsEnabled="False"
+                      ToolTip.Tip="Save/load .param files - not yet wired (see the Parameters overview's chunk list)."/>
+              <Button Classes="SidebarAction" Content="Save to file" IsEnabled="False"
+                      ToolTip.Tip="Save/load .param files - not yet wired (see the Parameters overview's chunk list)."/>
+
+              <Border Height="1" Background="{StaticResource CardBorder}" Margin="0,4,0,10"/>
+
+              <Button Classes="SidebarAction" Content="Write Params" IsEnabled="False"
+                      ToolTip.Tip="Needs in-place cell editing + setParamAsync write-back - the next chunk, not started yet."/>
+              <Button Classes="SidebarAction" Content="Refresh Params" IsEnabled="False"
+                      ToolTip.Tip="Real getParamList() re-download from the vehicle, gated behind an armed-vehicle warning on the real screen - not wired without that same safety gate."/>
+              <Button Classes="SidebarAction" Content="Compare Params" IsEnabled="False"
+                      ToolTip.Tip="Save/load .param files - not yet wired (see the Parameters overview's chunk list)."/>
+              <Button Classes="SidebarAction" Content="Commit Params" IsEnabled="False"
+                      ToolTip.Tip="Sends PREFLIGHT_STORAGE to the connected vehicle (commit RAM params to flash) - a real vehicle-mutating MAVLink command, deliberately not wired without dedicated review."/>
+
+              <TextBlock Classes="SidebarNote" Text="All units are in raw format with no scaling"/>
+
+              <ComboBox Classes="SidebarCombo" IsEnabled="False" PlaceholderText="Presaved defaults"/>
+              <Button Classes="SidebarAction" Content="Load Presaved" IsEnabled="False"
+                      ToolTip.Tip="Save/load .param files - not yet wired (see the Parameters overview's chunk list)."/>
+              <Button Classes="SidebarAction" Content="Reset to Default" IsEnabled="False"
+                      ToolTip.Tip="Needs in-place cell editing + setParamAsync write-back - the next chunk, not started yet."/>
+
+              <Border Height="1" Background="{StaticResource CardBorder}" Margin="0,4,0,10"/>
+
+              <!-- Search itself lives in the header above, not here - see that
+                   Grid's own comment. -->
+              <CheckBox Classes="SidebarCheck" Content="Modified" IsEnabled="False"
+                        ToolTip.Tip="Tracks in-place edits not yet written to the vehicle - needs the write-back chunk first."/>
+              <CheckBox Classes="SidebarCheck" Content="None Default" IsChecked="{Binding ShowNoneDefaultOnly}"/>
+
+              <Button Classes="SidebarAction" Content="Refresh Table" Margin="0,10,0,0"
+                      Command="{Binding RefreshTableCommand}"
+                      ToolTip.Tip="Reprocesses the vehicle's already-downloaded parameters into the grid - no network round-trip."/>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
       </Grid>
     </DockPanel>
   </Border>
