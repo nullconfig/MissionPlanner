@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MissionPlanner.Prototypes.Avalonia.FlightData.CompassGauge"
+             Width="150" Height="150">
+
+  <!--
+    Cardinal-direction compass card - N/E/S/W only, no intercardinals yet (matches the
+    "digestible chunk" pattern the rest of this initiative follows; easy to extend
+    later). Same "no own UserControl.Resources, relies on the host's" reasoning as
+    AttitudeIndicator.axaml.cs - always hosted inside FlightDataView.
+  -->
+
+  <Grid>
+    <Ellipse Width="150" Height="150" Fill="{StaticResource CardBg}" Stroke="{StaticResource CardBorder}" StrokeThickness="2"/>
+
+    <!-- The card rotates by -heading so true north always points toward the fixed
+         pointer's actual bearing - the pointer itself never moves. -->
+    <Grid x:Name="CompassCard" Width="130" Height="130" RenderTransformOrigin="50%,50%">
+      <Grid.RenderTransform>
+        <RotateTransform Angle="0"/>
+      </Grid.RenderTransform>
+      <TextBlock Text="N" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"
+                 HorizontalAlignment="Center" VerticalAlignment="Top"/>
+      <TextBlock Text="E" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"
+                 HorizontalAlignment="Right" VerticalAlignment="Center"/>
+      <TextBlock Text="S" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"
+                 HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+      <TextBlock Text="W" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"
+                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
+    </Grid>
+
+    <!-- Fixed heading pointer at 12 o'clock, plus a fixed (non-rotating) numeric
+         readout in the center - both represent the vehicle's own bearing, so
+         neither should spin with the card. -->
+    <Polygon Points="75,10 70,22 80,22" Fill="{StaticResource AccentOrange}"/>
+    <TextBlock x:Name="HeadingReadout" Text="0°" FontSize="16" FontWeight="Bold"
+               Foreground="{StaticResource TextPrimary}"
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  </Grid>
+</UserControl>
