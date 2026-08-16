@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    Terminal bundle - one of the per-tab bundles mirroring Mission Planner's own top-level
-    screens (see ../DemoApp/README.md's "Bundles" section for the full list and how they're
-    hosted). This one is complete: a live console showing STATUSTEXT from a connected
-    MAVLinkInterface, extracted from ../DemoApp/MainWindow.axaml(.cs) where it originally
-    lived, so it can be worked on (and reused) independently of the app shell.
+    Parameters bundle - live read-only parameter list for a connected MAVLinkInterface,
+    the first chunk of the Config/Tuning "full parameter list" screen
+    (GCSViews/ConfigurationView/ConfigRawParams.cs / ConfigFriendlyParams.cs). Chunk 1
+    scope only: read the vehicle's real parameters, search/filter them. No in-place
+    editing yet - see README.md and .okf/config-tuning/parameters/overview.md for the
+    staged plan this is chunk 1 of.
   -->
 
   <PropertyGroup>
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.1" />
     <PackageReference Include="ReactiveUI" Version="24.1.0" />
   </ItemGroup>
 

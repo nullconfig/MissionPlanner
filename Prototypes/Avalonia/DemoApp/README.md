@@ -43,6 +43,12 @@ don't need one and are constructed once at startup.
 
 ## Status: builds and runs
 
+Needs the **.NET 10 SDK** (bumped from net8.0 2026-08-15, alongside adopting ReactiveUI
+and FluentAvalonia across every bundle - see `.okf/log.md`'s "MVVM + FluentAvalonia"
+entry for the full reasoning, including why FluentAvaloniaUI specifically forced the
+net10.0 move). The .NET 8 SDK still installed alongside it is unrelated/unused by this
+tree now.
+
 ```
 export PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"
 cd Prototypes/Avalonia/DemoApp

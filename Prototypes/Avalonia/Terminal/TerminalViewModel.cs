@@ -1,21 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Text;
+using ReactiveUI;
 
 namespace MissionPlanner.Prototypes.Avalonia.Terminal
 {
     // Real feed: STATUSTEXT messages off a connected MAVLinkInterface - the same data
     // Mission Planner's own "Messages" tab shows. Logic moved here unchanged from
     // ../DemoApp/MainWindow.axaml.cs, where it originally lived before the per-tab bundle
-    // split. No Avalonia/UI-framework dependency here (matches ConfigMotorTestViewModel's
-    // design) - TerminalView owns the MAVLinkInterface subscription and UI-thread
-    // marshaling, this class just holds/filters/renders the data.
-    public class TerminalViewModel : INotifyPropertyChanged
+    // split. No Avalonia dependency here (matches ConfigMotorTestViewModel's design) -
+    // TerminalView owns the MAVLinkInterface subscription and UI-thread marshaling, this
+    // class just holds/filters/renders the data. ReactiveObject (ReactiveUI, added
+    // 2026-08-15) replaces a hand-rolled INotifyPropertyChanged - same bindings, no
+    // boilerplate PropertyChanged event/OnPropertyChanged method to maintain per class.
+    public class TerminalViewModel : ReactiveObject
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
         // severity follows MAVLink's MAV_SEVERITY: 0=EMERGENCY ... 6=INFO, 7=DEBUG (lower
         // is more severe). Kept per-message (not just flattened text) so the All/Info/Error
         // filter can be applied retroactively, not just to new messages.
@@ -28,14 +27,14 @@ namespace MissionPlanner.Prototypes.Avalonia.Terminal
         public string ConsoleText
         {
             get => _consoleText;
-            private set { _consoleText = value; OnPropertyChanged(); }
+            private set => this.RaiseAndSetIfChanged(ref _consoleText, value);
         }
 
         private string _lineCountText = "0 messages";
         public string LineCountText
         {
             get => _lineCountText;
-            private set { _lineCountText = value; OnPropertyChanged(); }
+            private set => this.RaiseAndSetIfChanged(ref _lineCountText, value);
         }
 
         public void SetFilter(string filter)
@@ -105,8 +104,5 @@ namespace MissionPlanner.Prototypes.Avalonia.Terminal
                 ? "0 messages"
                 : $"{shown} of {_messages.Count} message{(_messages.Count == 1 ? "" : "s")}";
         }
-
-        private void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

@@ -38,14 +38,18 @@
                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
 
-        <!-- ScrollViewer (not a bare StackPanel) so the nav strip clips/scrolls within
-             its own column at narrow widths instead of overflowing into the connect
-             controls' column - a plain StackPanel in an Avalonia Grid doesn't clip to
-             its column. -->
-        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+        <!-- ScrollViewer (not a bare StackPanel) so the nav strip clips within its own
+             column at narrow widths instead of overflowing into the connect controls'
+             column - a plain StackPanel in an Avalonia Grid doesn't clip to its column.
+             HorizontalScrollBarVisibility="Disabled", not "Auto": below
+             NavCollapseWidth (MainWindow.axaml.cs), OnWindowSizeChanged swaps this
+             whole ScrollViewer out for HamburgerButton instead of letting it scroll -
+             a scrollbar here was the thing asked to go away, not something to keep as
+             a fallback. -->
+        <ScrollViewer x:Name="NavScroll" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled"
                       HorizontalAlignment="Left" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" Spacing="2">
-            <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab">
+            <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab NavTabActive">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="◉" FontSize="13"/>
                 <TextBlock Text="Flight Data" FontSize="12"/>
@@ -63,7 +67,7 @@
                 <TextBlock Text="Initial Setup" FontSize="12"/>
               </StackPanel>
             </Button>
-            <Button x:Name="NavConfigTuning" Tag="ConfigTuning" Click="OnNavClick" Classes="NavTab NavTabActive">
+            <Button x:Name="NavConfigTuning" Tag="ConfigTuning" Click="OnNavClick" Classes="NavTab">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="≡" FontSize="13"/>
                 <TextBlock Text="Config/Tuning" FontSize="12"/>
@@ -84,6 +88,25 @@
           </StackPanel>
         </ScrollViewer>
 
+        <!-- Collapsed-width stand-in for the ScrollViewer above - same six sections,
+             as a MenuFlyout instead of a horizontal strip. OnWindowSizeChanged shows
+             exactly one of these two at a time; never both, never neither. MenuItem
+             (not Button) inside a MenuFlyout, but OnNavClick still works unmodified -
+             it casts sender to Control, and Tag/Click are common to both. -->
+        <Button x:Name="NavHamburger" Grid.Column="1" Classes="IconBox" Content="☰"
+                HorizontalAlignment="Left" VerticalAlignment="Center" IsVisible="False">
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+              <MenuItem Header="◉  Flight Data" Tag="FlightData" Click="OnNavClick"/>
+              <MenuItem Header="⚑  Flight Plan" Tag="FlightPlan" Click="OnNavClick"/>
+              <MenuItem Header="⚙  Initial Setup" Tag="InitialSetup" Click="OnNavClick"/>
+              <MenuItem Header="≡  Config/Tuning" Tag="ConfigTuning" Click="OnNavClick"/>
+              <MenuItem Header="▶  Simulation" Tag="Simulation" Click="OnNavClick"/>
+              <MenuItem Header="?  Help" Tag="Help" Click="OnNavClick"/>
+            </MenuFlyout>
+          </Button.Flyout>
+        </Button>
+
         <!-- Connection controls - anchored to the far right, as requested. Auto-sized,
              not wrapped in a ScrollViewer, so it never scrolls or gets squeezed; the
              nav ScrollViewer above absorbs all the space pressure at narrow widths. -->
@@ -95,13 +118,17 @@
 
           <StackPanel x:Name="SerialFields" Orientation="Horizontal" Spacing="6">
             <ComboBox x:Name="SerialPortCombo" Width="150" PlaceholderText="No ports found"/>
-            <Button x:Name="RefreshPortsButton" Content="⟳" Classes="Ghost" Click="OnRefreshPortsClick" Padding="8,6"/>
+            <!-- IconBox, not Ghost - Ghost is borderless/no-fixed-size by design (see
+                 ConfigMotorTestView's "Set spin arm…"/"Set spin min…" for its intended
+                 use), which is exactly why this refresh button used to look
+                 undersized/boxless next to the bordered ComboBoxes either side of it. -->
+            <Button x:Name="RefreshPortsButton" Content="⟳" Classes="IconBox" Click="OnRefreshPortsClick"/>
             <ComboBox x:Name="BaudCombo" Width="80"/>
           </StackPanel>
 
           <StackPanel x:Name="UdpFields" Orientation="Horizontal" Spacing="6" IsVisible="False">
-            <TextBox x:Name="HostBox" Text="127.0.0.1" Width="110" Watermark="Host"/>
-            <TextBox x:Name="PortBox" Text="14550" Width="70" Watermark="Port"/>
+            <TextBox x:Name="HostBox" Text="127.0.0.1" Width="110" Height="{StaticResource ControlHeight}" Watermark="Host"/>
+            <TextBox x:Name="PortBox" Text="14550" Width="70" Height="{StaticResource ControlHeight}" Watermark="Port"/>
           </StackPanel>
 
           <Button x:Name="ConnectButton" Content="Connect" Classes="Primary" Click="OnConnectClick"/>
@@ -137,8 +164,8 @@
          immediately at startup. -->
     <Grid Margin="24">
 
-      <Grid x:Name="FlightDataPanel" IsVisible="False">
-        <Border Classes="Card">
+      <Grid x:Name="FlightDataPanel" IsVisible="True">
+        <Border x:Name="FlightDataPlaceholderCard" Classes="Card">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
             <TextBlock Text="◉  Flight Data" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
             <TextBlock Text="Not connected. Use the connection controls in the banner to load live telemetry."
@@ -151,7 +178,7 @@
       <ContentControl x:Name="FlightPlanHost" IsVisible="False"/>
 
       <Grid x:Name="InitialSetupPanel" IsVisible="False">
-        <Border Classes="Card">
+        <Border x:Name="InitialSetupPlaceholderCard" Classes="Card">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
             <TextBlock Text="⚙  Initial Setup" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
             <TextBlock Text="Not connected. Use the connection controls in the banner to identify the vehicle."
@@ -161,17 +188,44 @@
         <ContentControl x:Name="InitialSetupHost" IsVisible="False"/>
       </Grid>
 
-      <!-- Config/Tuning: the one bundle with the deepest real feature - Motor Test -->
-      <Grid x:Name="ConfigTuningPanel" IsVisible="True">
-        <Border x:Name="PlaceholderCard" Classes="Card">
-          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-            <TextBlock Text="≡  Config/Tuning → Motor Test" FontSize="16" FontWeight="Bold"
-                       Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
-            <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) motor test screen."
-                       Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
-          </StackPanel>
-        </Border>
-        <ContentControl x:Name="MotorTestHost" IsVisible="False"/>
+      <!-- Config/Tuning: the real screen is an umbrella over ~55 independent
+           sub-screens (see .okf/config-tuning/overview.md), not one monolithic tab -
+           this FilterChip strip is the seed of an in-tab sub-nav for however many of
+           them get ported here, not a one-off special case for just these two.
+           MotorTestPanel/ParametersPanel share Grid.Row="1" (same overlap-plus-
+           IsVisible-toggle trick used one level up for FlightDataPanel/
+           ConfigTuningPanel/etc.) so only the selected sub-screen renders. -->
+      <Grid x:Name="ConfigTuningPanel" IsVisible="False" RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
+          <Button x:Name="ConfigTuningSubNavMotorTest" Tag="MotorTest" Content="Motor Test"
+                  Click="OnConfigTuningSubNavClick" Classes="FilterChip FilterChipActive" FontSize="11" Padding="10,3"/>
+          <Button x:Name="ConfigTuningSubNavParameters" Tag="Parameters" Content="Parameters"
+                  Click="OnConfigTuningSubNavClick" Classes="FilterChip" FontSize="11" Padding="10,3"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" x:Name="MotorTestPanel" IsVisible="True">
+          <Border x:Name="ConfigTuningPlaceholderCard" Classes="Card">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+              <TextBlock Text="≡  Config/Tuning → Motor Test" FontSize="16" FontWeight="Bold"
+                         Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+              <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) motor test screen."
+                         Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <ContentControl x:Name="MotorTestHost" IsVisible="False"/>
+        </Grid>
+
+        <Grid Grid.Row="1" x:Name="ParametersPanel" IsVisible="False">
+          <Border x:Name="ParametersPlaceholderCard" Classes="Card">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+              <TextBlock Text="▤  Config/Tuning → Parameters" FontSize="16" FontWeight="Bold"
+                         Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+              <TextBlock Text="Not connected. Use the connection controls in the banner to load the live parameter list."
+                         Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <ContentControl x:Name="ParametersHost" IsVisible="False"/>
+        </Grid>
       </Grid>
 
       <ContentControl x:Name="SimulationHost" IsVisible="False"/>
