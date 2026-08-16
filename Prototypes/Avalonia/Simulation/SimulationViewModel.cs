@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Linq;
+using ReactiveUI;
 
 namespace MissionPlanner.Prototypes.Avalonia.Simulation
 {
@@ -8,8 +8,13 @@ namespace MissionPlanner.Prototypes.Avalonia.Simulation
     // (sim_vehicle.py) on PATH? No MAVLinkInterface needed - this doesn't talk to a
     // vehicle, it's about launching one locally. Doesn't launch SITL yet - see
     // README.md for what a contributor would need to add for that (would shell out to
-    // sim_vehicle.py similar to how the real app's simulation screen does).
-    public class SimulationViewModel
+    // sim_vehicle.py similar to how the real app's simulation screen does). ReactiveObject
+    // (ReactiveUI, added 2026-08-15) for consistency with the other bundles' ViewModels -
+    // every property here is get-only/set-once today, so there's nothing to observe yet,
+    // but a future SITL-launch status property (see README.md's "what's next") would want
+    // it, and one base class across every ViewModel is the point of adopting ReactiveUI
+    // at all.
+    public class SimulationViewModel : ReactiveObject
     {
         public bool SitlAvailable { get; }
         public string StatusText { get; }

@@ -61,10 +61,12 @@ and connected (USB serial or UDP) and passed in here.
 
 - The AXAML originally bound `Command="{Binding TestAllCommand}"` etc. directly to plain
   `async Task` methods on the ViewModel. Avalonia's `Command` binding requires an
-  `ICommand`-typed property, so those bindings would have silently done nothing. Fixed by
-  adding `RelayCommand.cs` (a minimal `ICommand`/async-command implementation) and exposing
-  `ICommand` properties (`TestMotorCommand`, `TestAllCommand`, etc.) from the constructor
-  instead.
+  `ICommand`-typed property, so those bindings would have silently done nothing. Originally
+  fixed by adding `RelayCommand.cs` (a minimal `ICommand`/async-command implementation) and
+  exposing `ICommand` properties (`TestMotorCommand`, `TestAllCommand`, etc.) from the
+  constructor instead. Superseded when the app adopted ReactiveUI: `RelayCommand.cs` is
+  gone, and those same properties are now `ReactiveCommand<TParam, RxVoid>`, built with
+  `ReactiveCommand.Create`/`CreateFromTask` in the constructor.
 - `ConfigMotorTestView.axaml.cs` was missing an `InitializeComponent()` method entirely -
   never caught because this project had no `.csproj` and was never actually compiled until
   now. Added (`AvaloniaXamlLoader.Load(this)`, matching the pattern elsewhere).

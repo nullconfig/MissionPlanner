@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:styling="using:FluentAvalonia.Styling"
              x:Class="MissionPlanner.Prototypes.Avalonia.DemoApp.App"
              RequestedThemeVariant="Dark">
   <!-- Shared dark/card visual language for every Window in this process (MainWindow plus
@@ -14,10 +15,42 @@
     <SolidColorBrush x:Key="AccentBlue" Color="#4C8DFF"/>
     <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
     <SolidColorBrush x:Key="TerminalGreen" Color="#3DDC97"/>
+
+    <!-- Shared height for every interactive control that sits in one toolbar-style row
+         (the top banner's nav tabs, connect-bar dropdowns/inputs, and its buttons) so
+         they line up instead of each control's intrinsic content+padding height
+         happening to differ - see modernization/design-system/components.md's
+         "Toolbar row height" section for why this exists. -->
+    <x:Double x:Key="ControlHeight">36</x:Double>
   </Application.Resources>
 
   <Application.Styles>
-    <FluentTheme />
+    <!-- FluentAvaloniaTheme instead of plain Avalonia.Themes.Fluent's FluentTheme
+         (2026-08-15) - adds FluentAvalonia's control set (NavigationView etc.) on top
+         of the same Fluent design language, so it's a drop-in replacement here: every
+         custom Style Selector= below still applies unchanged, and RequestedThemeVariant
+         above still governs light/dark the same way. -->
+    <styling:FluentAvaloniaTheme />
+
+    <!-- FluentAvaloniaTheme's own Button ControlTheme (see FluentAvalonia's
+         ButtonStyles.axaml) sets an 83ms BrushTransition on PART_ContentPresenter's
+         Background, on top of its own :pointerover rule that targets that same
+         property with FluentAvalonia's default (bright) ButtonBackgroundPointerOver
+         brush. Every custom Button.* :pointerover rule below already overrides the
+         *color* (that's why hover correctly lands on our own dark tones, not
+         FluentAvalonia's), but not the *transition* - so on pointer-enter it visibly
+         animates from transparent through FluentAvalonia's bright default before
+         settling on ours a moment later, reading as a flash/color-cycle that plain
+         FluentTheme never had (no such transition existed there). Clearing Transitions
+         here, matching FluentAvalonia's own selector shape so it takes precedence the
+         same way our color overrides already do, makes every hover/press state change
+         instant again - Application-level, so it cascades to every Button anywhere in
+         the app (this file's classes and every hosted bundle's), not just NavTab. -->
+    <Style Selector="Button /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Transitions">
+        <Transitions/>
+      </Setter>
+    </Style>
 
     <Style Selector="Border.Card">
       <Setter Property="Background" Value="{StaticResource CardBg}"/>
@@ -58,6 +91,7 @@
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
       <Setter Property="BorderThickness" Value="0"/>
     </Style>
     <Style Selector="Button.Primary:pointerover /template/ ContentPresenter">
@@ -90,6 +124,26 @@
       <Setter Property="Background" Value="#1F2430"/>
     </Style>
 
+    <!-- Icon-only button that needs to visually match a same-row ComboBox/TextBox's
+         box (border, corner radius, height) instead of Ghost's borderless/no-fixed-size
+         look - e.g. the connect bar's refresh-ports button. Square (Width == Height)
+         since it holds a single icon glyph, not text. -->
+    <Style Selector="Button.IconBox">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
+      <Setter Property="Width" Value="{StaticResource ControlHeight}"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.IconBox:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#2A303F"/>
+    </Style>
+
     <Style Selector="Button.Danger">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="{StaticResource Danger}"/>
@@ -97,6 +151,7 @@
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
     </Style>
     <Style Selector="Button.Danger:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="#2A1618"/>
@@ -114,11 +169,41 @@
       <Setter Property="Background" Value="#17263F"/>
     </Style>
 
+    <!-- Bare selector, not a class - applies app-wide, including Terminal's
+         multi-line, AcceptsReturn console box, so no Height/ControlHeight setter
+         belongs here: that box needs to grow with its ScrollViewer, not get pinned to
+         one row's height. The connect bar's HostBox/PortBox set Height inline instead,
+         per-instance, for exactly this reason - see MainWindow.axaml. -->
     <Style Selector="TextBox">
       <Setter Property="Background" Value="#1F2430"/>
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
       <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
       <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <!-- Bare selector, not a class, same reasoning as TextBox above - only one
+         ComboBox usage exists today (the connect bar's mode/port/baud dropdowns), all
+         needing the same dark styling and the shared ControlHeight so they match the
+         connect bar's buttons and the NavTab row beside them. Revisit as a class
+         (ComboBox.* ) instead of a bare selector if a second, differently-sized
+         ComboBox usage ever shows up - see TextBox's own note above for why a bare
+         selector stops being safe once usages diverge. -->
+    <Style Selector="ComboBox">
+      <Setter Property="Background" Value="#1F2430"/>
+      <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
+      <!-- FluentAvalonia's own ComboBox template applies its Padding (default
+           "12,5,0,7" - asymmetric, tuned for its own natural ~32px MinHeight) as a
+           Margin around the content, and never sets VerticalContentAlignment itself
+           (defaults to Stretch). Forcing Height above to ControlHeight (36, taller
+           than that natural size) without this left the selected-item text pinned
+           near the top instead of re-centering in the extra room - measured ~4px
+           higher than Button.Primary's own text in the same row (Button's
+           FluentAvalonia theme already sets VerticalContentAlignment=Center itself).
+           See .okf/log.md's "Connect button centering" entry. -->
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <Style Selector="Button.FilterChip">
@@ -143,7 +228,15 @@
       <Setter Property="BorderThickness" Value="0,0,0,2"/>
       <Setter Property="BorderBrush" Value="Transparent"/>
       <Setter Property="CornerRadius" Value="0"/>
-      <Setter Property="Padding" Value="12,10"/>
+      <Setter Property="Padding" Value="12,0"/>
+      <!-- Same ControlHeight as the connect bar's ComboBoxes/buttons beside it, so the
+           pointerover highlight rect (and the active-tab underline sitting at its
+           bottom edge) reads as one consistent row height across the whole banner,
+           not a shorter/taller box than its neighbors. VerticalContentAlignment
+           centers the icon+label StackPanel now that Padding no longer supplies the
+           vertical sizing. -->
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
     <Style Selector="Button.NavTab:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="#1F2430"/>

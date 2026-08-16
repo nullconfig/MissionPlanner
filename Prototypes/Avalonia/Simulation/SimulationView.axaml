@@ -10,6 +10,7 @@
     <SolidColorBrush x:Key="AccentOrange" Color="#FF7A1B"/>
     <SolidColorBrush x:Key="TerminalGreen" Color="#3DDC97"/>
     <SolidColorBrush x:Key="Danger" Color="#E5484D"/>
+    <x:Double x:Key="ControlHeight">36</x:Double>
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -27,6 +28,7 @@
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Padding" Value="12,9"/>
+      <Setter Property="Height" Value="{StaticResource ControlHeight}"/>
       <Setter Property="BorderThickness" Value="0"/>
     </Style>
   </UserControl.Styles>

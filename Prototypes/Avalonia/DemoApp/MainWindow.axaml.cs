@@ -13,6 +13,7 @@ using MissionPlanner.Prototypes.Avalonia.FlightData;
 using MissionPlanner.Prototypes.Avalonia.FlightPlan;
 using MissionPlanner.Prototypes.Avalonia.Help;
 using MissionPlanner.Prototypes.Avalonia.InitialSetup;
+using MissionPlanner.Prototypes.Avalonia.Parameters;
 using MissionPlanner.Prototypes.Avalonia.Simulation;
 using MissionPlanner.Prototypes.Avalonia.Terminal;
 
@@ -47,11 +48,24 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
         private readonly TextBlock _connectStatusText;
 
         private readonly Grid _flightDataPanel;
+        private readonly Border _flightDataPlaceholderCard;
         private readonly ContentControl _flightDataHost;
         private readonly Grid _initialSetupPanel;
+        private readonly Border _initialSetupPlaceholderCard;
         private readonly ContentControl _initialSetupHost;
-        private readonly Border _placeholderCard;
+        private readonly Border _configTuningPlaceholderCard;
         private readonly ContentControl _motorTestHost;
+
+        // Config/Tuning's own in-tab sub-nav (Motor Test / Parameters) - independent of
+        // the top banner's nav tabs, and independent of connection state: switching
+        // between these two doesn't need a live MAVLinkInterface, only *populating*
+        // ParametersHost's content does (see ConnectAsync/Disconnect).
+        private readonly Button _configTuningSubNavMotorTest;
+        private readonly Button _configTuningSubNavParameters;
+        private readonly Grid _motorTestPanel;
+        private readonly Grid _parametersPanel;
+        private readonly Border _parametersPlaceholderCard;
+        private readonly ContentControl _parametersHost;
 
         // Persistent, foldable, read-only troubleshooting console - not a nav tab, see
         // the constructor comment above. The fold toggle lives inside TerminalView's
@@ -64,7 +78,22 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
         // MenuSimulation, MenuHelp - confirmed against its actual MainMenu.Items list).
         private Dictionary<string, Button> _navButtons;
         private Dictionary<string, Control> _sectionPanels;
-        private string _activeSection = "ConfigTuning";
+
+        // Below this Window width, the six nav tabs (plus the connect bar they share
+        // a row with) no longer fit without a horizontal scrollbar - OnWindowSizeChanged
+        // swaps the ScrollViewer strip for NavHamburger's MenuFlyout instead of letting
+        // that scrollbar appear. Empirically verified (not guessed): at 1180 (the
+        // Window's opening Width) all six tabs render with room to spare; at 1000 (the
+        // Window's own MinWidth) they visibly do not. 1080 sits in between with margin
+        // on both sides - re-verify against DemoApp/App.axaml if NavTab's font size,
+        // padding, or the tab list itself ever changes.
+        private const double NavCollapseWidth = 1080;
+        private ScrollViewer _navScroll;
+        private Button _navHamburger;
+
+        // Flight Data, matching the real app's own startup behavior (MainV2.cs runs
+        // MenuFlightData_Click at the end of Init, landing there every launch).
+        private string _activeSection = "FlightData";
 
         private MAVLinkInterface _mav;
         private bool _connecting;
@@ -94,13 +123,24 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             _connectStatusText = this.FindControl<TextBlock>("ConnectStatusText");
 
             _flightDataPanel = this.FindControl<Grid>("FlightDataPanel");
+            _flightDataPlaceholderCard = this.FindControl<Border>("FlightDataPlaceholderCard");
             _flightDataHost = this.FindControl<ContentControl>("FlightDataHost");
             _initialSetupPanel = this.FindControl<Grid>("InitialSetupPanel");
+            _initialSetupPlaceholderCard = this.FindControl<Border>("InitialSetupPlaceholderCard");
             _initialSetupHost = this.FindControl<ContentControl>("InitialSetupHost");
-            _placeholderCard = this.FindControl<Border>("PlaceholderCard");
+            _configTuningPlaceholderCard = this.FindControl<Border>("ConfigTuningPlaceholderCard");
             _motorTestHost = this.FindControl<ContentControl>("MotorTestHost");
+            _configTuningSubNavMotorTest = this.FindControl<Button>("ConfigTuningSubNavMotorTest");
+            _configTuningSubNavParameters = this.FindControl<Button>("ConfigTuningSubNavParameters");
+            _motorTestPanel = this.FindControl<Grid>("MotorTestPanel");
+            _parametersPanel = this.FindControl<Grid>("ParametersPanel");
+            _parametersPlaceholderCard = this.FindControl<Border>("ParametersPlaceholderCard");
+            _parametersHost = this.FindControl<ContentControl>("ParametersHost");
             _bottomConsolePanel = this.FindControl<Border>("BottomConsolePanel");
             _bottomConsoleHost = this.FindControl<ContentControl>("BottomConsoleHost");
+
+            _navScroll = this.FindControl<ScrollViewer>("NavScroll");
+            _navHamburger = this.FindControl<Button>("NavHamburger");
 
             _navButtons = new Dictionary<string, Button>
             {
@@ -133,9 +173,52 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             ((ContentControl)_sectionPanels["Help"]).Content = new HelpView();
 
             RefreshSerialPorts();
+
+            // Not called here with Bounds.Width directly - Bounds isn't finalized yet
+            // at constructor time (this ran with Width 0 during testing, collapsing to
+            // the hamburger even at the full 1180 startup width, with no later
+            // SizeChanged to correct it since the window's size never actually changes
+            // again after its one initial layout pass). Opened fires once real layout
+            // has happened; SizeChanged covers every resize after that.
+            SizeChanged += OnWindowSizeChanged;
+            Opened += (_, _) => UpdateNavCollapse(Bounds.Width);
         }
 
-        private void OnNavClick(object sender, RoutedEventArgs e) => ShowSection((string)((Button)sender).Tag);
+        // sender is a Control, not specifically a Button: the same handler serves the
+        // full-width NavTab Buttons in NavScroll and the MenuItems inside
+        // NavHamburger's MenuFlyout - both expose Tag and raise this via Click, and
+        // Control is their nearest common type that does.
+        private void OnNavClick(object sender, RoutedEventArgs e) => ShowSection((string)((Control)sender).Tag);
+
+        // Config/Tuning's own sub-nav, independent of ShowSection above (that one
+        // swaps the six top-banner sections; this one swaps within the Config/Tuning
+        // section only). Reuses Button.FilterChip/FilterChipActive - the same toggle
+        // pattern Terminal's All/Info/Error filters already use, not a new class.
+        private void OnConfigTuningSubNavClick(object sender, RoutedEventArgs e)
+        {
+            var key = (string)((Button)sender).Tag;
+
+            foreach (var (button, panel, tag) in new[]
+                     {
+                         (_configTuningSubNavMotorTest, (Control)_motorTestPanel, "MotorTest"),
+                         (_configTuningSubNavParameters, (Control)_parametersPanel, "Parameters"),
+                     })
+            {
+                var active = tag == key;
+                button.Classes.Remove(active ? "FilterChip" : "FilterChipActive");
+                button.Classes.Add(active ? "FilterChipActive" : "FilterChip");
+                panel.IsVisible = active;
+            }
+        }
+
+        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateNavCollapse(e.NewSize.Width);
+
+        private void UpdateNavCollapse(double windowWidth)
+        {
+            bool collapse = windowWidth < NavCollapseWidth;
+            _navScroll.IsVisible = !collapse;
+            _navHamburger.IsVisible = collapse;
+        }
 
         private void ShowSection(string key)
         {
@@ -320,16 +403,21 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             // its own event subscriptions when Content is cleared.
             _flightDataHost.Content = null;
             _flightDataHost.IsVisible = false;
+            _flightDataPlaceholderCard.IsVisible = true;
             _initialSetupHost.Content = null;
             _initialSetupHost.IsVisible = false;
+            _initialSetupPlaceholderCard.IsVisible = true;
             _motorTestHost.Content = null;
             _motorTestHost.IsVisible = false;
+            _configTuningPlaceholderCard.IsVisible = true;
+            _parametersHost.Content = null;
+            _parametersHost.IsVisible = false;
+            _parametersPlaceholderCard.IsVisible = true;
             // Discarding the old TerminalView and building a fresh one on the next
             // connect is what resets its fold state back to expanded - no manual reset
             // needed here.
             _bottomConsoleHost.Content = null;
             _bottomConsolePanel.IsVisible = false;
-            _placeholderCard.IsVisible = true;
 
             SetConnectedUiState(false);
 
@@ -435,13 +523,19 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
 
                 _motorTestHost.Content = new ConfigMotorTestView(_mav, this);
                 _motorTestHost.IsVisible = true;
-                _placeholderCard.IsVisible = false;
+                _configTuningPlaceholderCard.IsVisible = false;
+
+                _parametersHost.Content = new ParametersView(_mav);
+                _parametersHost.IsVisible = true;
+                _parametersPlaceholderCard.IsVisible = false;
 
                 _flightDataHost.Content = new FlightDataView(_mav);
                 _flightDataHost.IsVisible = true;
+                _flightDataPlaceholderCard.IsVisible = false;
 
                 _initialSetupHost.Content = new InitialSetupView(_mav);
                 _initialSetupHost.IsVisible = true;
+                _initialSetupPlaceholderCard.IsVisible = false;
 
                 _bottomConsoleHost.Content = new TerminalView(_mav);
                 _bottomConsolePanel.IsVisible = true;
