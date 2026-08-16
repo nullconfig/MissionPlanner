@@ -324,7 +324,10 @@ namespace MissionPlanner.Utilities
         /// <returns></returns>
         public static string GetDataDirectory()
         {
-            if (isMono())
+            // CommonApplicationData resolves to /usr/share on Unix, which a normal user
+            // process can't write to - true whether or not the runtime is Mono, so the
+            // per-user directory is required on Unix regardless of isMono().
+            if (isMono() || isUnix)
             {
                 return GetUserDataDirectory();
             }
