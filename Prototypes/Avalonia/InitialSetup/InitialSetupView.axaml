@@ -32,7 +32,7 @@
   </UserControl.Styles>
 
   <DockPanel>
-    <TextBlock DockPanel.Dock="Top" Text="⚙ Initial Setup" FontSize="16" FontWeight="Bold"
+    <TextBlock DockPanel.Dock="Top" Text="⚙ SETUP" FontSize="16" FontWeight="Bold"
                Foreground="{StaticResource TextPrimary}" Margin="0,0,0,16"/>
 
     <UniformGrid DockPanel.Dock="Top" Columns="4" Margin="0,0,0,16">
