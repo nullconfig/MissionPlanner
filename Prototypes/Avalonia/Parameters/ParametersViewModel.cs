@@ -100,6 +100,13 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             private set => this.RaiseAndSetIfChanged(ref _statusText, value);
         }
 
+        // Surfaces a background BuildRows()/BuildGroupTree() failure in the UI
+        // itself (the same StatusText readout that normally shows "N of M
+        // parameters") rather than letting it crash the process - see
+        // ParametersView.axaml.cs's AttachedToVisualTree handler for why that
+        // matters here specifically.
+        public void SetLoadError(string message) => StatusText = $"Failed to load parameters: {message}";
+
         // Matches ConfigRawParams.cs's chk_none_default ("None Default") - visible
         // only when the DataGridView row's Default_value cell differs from its Value
         // cell (ConfigRawParams.cs's own filterList(), the chk_none_default.Checked
@@ -162,7 +169,22 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             var firmware = _mav.MAV.cs.firmware.ToString();
             var rows = new List<ParameterRowViewModel>();
 
-            foreach (var p in _mav.MAV.param)
+            // MAVLinkParamList (ExtLibs/Mavlink/MAVLinkParamList.cs) derives from
+            // List<MAVLinkParam> and only protects its OWN methods (the indexer,
+            // Add, Clear) with an internal ReaderWriterLock - a plain external
+            // foreach bypasses that lock entirely, since GetEnumerator() isn't
+            // overridden. Live params keep arriving over MAVLink on a different
+            // thread while this runs (right after connect, up to ~1500 of them),
+            // so a bare `foreach (var p in _mav.MAV.param)` here threw
+            // InvalidOperationException: "Collection was modified" mid-iteration -
+            // confirmed via a real crash log during live hardware testing, not
+            // something reproducible without a connected vehicle. .ToArray()
+            // snapshots once via a single fast bulk copy before the slow per-item
+            // metadata lookups below - the same pattern MAVLinkParamList's own
+            // Keys property and its Dictionary<string,double> cast operator already
+            // use internally for this exact reason, not a new workaround invented
+            // here.
+            foreach (var p in _mav.MAV.param.ToArray())
             {
                 // Real MAVLink-reported default, not a metadata-repository lookup -
                 // ConfigRawParams.cs reads this straight off the param itself
