@@ -11,8 +11,7 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
     // logger instead: plain text, one line per event, append-only.
     //
     // Writes to Settings.GetDataDirectory() - the same per-user directory
-    // DemoApp/Program.cs already points CustomUserDataDirectory at (see
-    // .okf/config-tuning/parameters/overview.md's Settings.cs fix), so this lands
+    // DemoApp/Program.cs already points CustomUserDataDirectory at, so this lands
     // next to the real cached apm.pdef.xml files, not somewhere new to go looking
     // for. Exists specifically so a live connect-flow test (real hardware, not
     // reproducible in a sandbox with no vehicle attached) leaves a persistent record

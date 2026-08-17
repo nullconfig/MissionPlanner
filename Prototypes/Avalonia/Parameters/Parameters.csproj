@@ -5,8 +5,7 @@
     the first chunk of the Config/Tuning "full parameter list" screen
     (GCSViews/ConfigurationView/ConfigRawParams.cs / ConfigFriendlyParams.cs). Chunk 1
     scope only: read the vehicle's real parameters, search/filter them. No in-place
-    editing yet - see README.md and .okf/config-tuning/parameters/overview.md for the
-    staged plan this is chunk 1 of.
+    editing yet - see README.md for the staged plan this is chunk 1 of.
   -->
 
   <PropertyGroup>

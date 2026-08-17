@@ -24,7 +24,7 @@
          the "12" package (XAML/C# API is otherwise identical). Chosen over building a
          custom tile renderer or wrapping GMap.NET (WinForms-only, no Avalonia support)
          after a NuGet search turned up no other well-adopted Avalonia-native map
-         control - see .okf/flight-data/overview.md. -->
+         control. -->
     <PackageReference Include="Mapsui.Avalonia12" Version="5.1.0" />
   </ItemGroup>
 

@@ -52,10 +52,9 @@
           <StackPanel Orientation="Horizontal" Spacing="2">
             <!-- Labels are the real on-screen text (MainV2.resx's MenuFlightData/etc.
                  .Text values, confirmed against a running-app screenshot 2026-08-16) -
-                 a single short word per tab, not this bundle's own prose names
-                 ("Flight Data" etc., kept in .okf/mission-planner.md for readability
-                 there but never the literal button text). See
-                 .okf/mission-planner.md's "Corrections" section. -->
+                 a single short word per tab, not the longer descriptive names
+                 ("Flight Data" etc.) used in this project's own prose/planning
+                 docs elsewhere, which are never the literal button text. -->
             <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab NavTabActive">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="◉" FontSize="13"/>
@@ -196,14 +195,13 @@
       </Grid>
 
       <!-- Config/Tuning: the real screen is an umbrella over ~55 independent
-           sub-screens (see .okf/config-tuning/overview.md), not one monolithic tab.
-           Motor Test and Parameters are real dockable panes now (Dock.Avalonia),
-           not a FilterChip toggle showing one XOR the other - both exist
-           simultaneously, draggable/resizable/floatable, adopted after researching
-           ArduDeck (an Electron/React GCS): its dockable-panel UX comes from
-           "dockview" (a React library), and Dock.Avalonia is the direct Avalonia
-           equivalent - see ConfigTuningDockFactory.cs and
-           .okf/modernization/overview.md. -->
+           sub-screens, not one monolithic tab. Motor Test and Parameters are real
+           dockable panes now (Dock.Avalonia), not a FilterChip toggle showing one
+           XOR the other - both exist simultaneously, draggable/resizable/floatable,
+           adopted after researching ArduDeck (an Electron/React GCS): its
+           dockable-panel UX comes from "dockview" (a React library), and
+           Dock.Avalonia is the direct Avalonia equivalent - see
+           ConfigTuningDockFactory.cs. -->
       <Grid x:Name="ConfigTuningPanel" IsVisible="False">
         <Border x:Name="ConfigTuningPlaceholderCard" Classes="Card">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">

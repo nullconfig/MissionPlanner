@@ -220,8 +220,7 @@
            than that natural size) without this left the selected-item text pinned
            near the top instead of re-centering in the extra room - measured ~4px
            higher than Button.Primary's own text in the same row (Button's
-           FluentAvalonia theme already sets VerticalContentAlignment=Center itself).
-           See .okf/log.md's "Connect button centering" entry. -->
+           FluentAvalonia theme already sets VerticalContentAlignment=Center itself). -->
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
@@ -233,7 +232,7 @@
       <!-- Rectangular, not pill-shaped - CornerRadius=6 matches every other button
            class in this file (Primary/Ghost/IconBox/etc.), per direct user feedback:
            the 999 pill radius used before wasn't wanted at all, in either state, not
-           just inconsistent between them. See .okf/log.md. -->
+           just inconsistent between them. -->
       <Setter Property="CornerRadius" Value="6"/>
     </Style>
     <Style Selector="Button.FilterChip:pointerover /template/ ContentPresenter">

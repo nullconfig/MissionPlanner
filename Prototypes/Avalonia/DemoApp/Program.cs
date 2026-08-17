@@ -16,8 +16,7 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             // migration check, which would otherwise prefer a stale ~/Documents/Mission
             // Planner directory over the real cache if one happens to exist. This is what
             // lets ParameterMetaDataRepository find the same cached apm.pdef.xml files
-            // (or download fresh ones) that the real Mono app uses - see
-            // .okf/config-tuning/parameters/overview.md.
+            // (or download fresh ones) that the real Mono app uses.
             Settings.CustomUserDataDirectory =
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
 

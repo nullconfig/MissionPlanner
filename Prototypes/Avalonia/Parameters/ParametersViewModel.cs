@@ -16,9 +16,7 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
     // ConfigMotorTestViewModel already make); Default comes from a different source
     // entirely - MAVLinkParam's own MAVLink-reported default, not metadata; Options
     // combines *two* metadata lookups (Range + Values) into one field, matching
-    // ConfigRawParams.cs's own `range + "\n" + options` concatenation. See
-    // .okf/config-tuning/parameters/overview.md's "Next immediate step" section (now
-    // done) for the real header-name/Designer-field/source table this was built from.
+    // ConfigRawParams.cs's own `range + "\n" + options` concatenation.
     // Plain fields, not a ReactiveObject - this chunk is read-only (see
     // ParametersViewModel's own comment), so there's nothing here that changes after
     // construction yet.
@@ -47,9 +45,8 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
     }
 
     // Chunk 1 of the "full parameter list" screen (GCSViews/ConfigurationView/
-    // ConfigRawParams.cs / ConfigFriendlyParams.cs) - see
-    // .okf/config-tuning/parameters/overview.md for the staged plan this is one piece
-    // of. Deliberately read-only for now: lists every real parameter on the connected
+    // ConfigRawParams.cs / ConfigFriendlyParams.cs) - one piece of a staged plan.
+    // Deliberately read-only for now: lists every real parameter on the connected
     // vehicle with search/filter and the real parameter-group tree, but no in-place
     // editing/setParamAsync write-back yet - that's the next chunk, once this one's
     // reviewed. No Avalonia dependency here (matches every other bundle's ViewModel) -

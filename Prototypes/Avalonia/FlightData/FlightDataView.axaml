@@ -10,10 +10,10 @@
 
   <!--
     Real screen (GCSViews/FlightData.cs) puts the HUD top-left and the map filling the
-    rest, side by side, per this bundle's own .okf/flight-data/overview.md (itself
-    cross-checked against ardupilot.org's docs, which disagree on HUD position - see
-    that doc's "Official docs cross-check" section). This prototype deliberately does
-    NOT copy that side-by-side split: the map fills the whole tab and the live values
+    rest, side by side (cross-checked against ardupilot.org's own docs too, which
+    disagree with each other on exact HUD position depending on source). This
+    prototype deliberately does NOT copy that side-by-side split: the map fills the
+    whole tab and the live values
     float on top of it instead, ArduDeck-style (a screenshot the user shared, an
     OSM-based GCS with this exact overlay pattern) - direct user request, not a
     misreading of the real screen. Real MP's own top-left HUD data (attitude, heading,
@@ -90,9 +90,8 @@
     <!-- Attitude/Compass toggle - copied from DemoApp/App.axaml's Button.FilterChip/
          FilterChipActive (self-contained-per-bundle, same reasoning as every other
          shared color/component token here), CornerRadius=6 already - not the old 999
-         pill shape that class briefly had before this session's own fix (see
-         .okf/log.md's "unselected FilterChip buttons oval" entry), so this bundle
-         never inherits the bug that fix corrected elsewhere. -->
+         pill shape that class briefly had before it was fixed app-wide, so this
+         bundle never inherits that bug. -->
     <Style Selector="Button.FilterChip">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
