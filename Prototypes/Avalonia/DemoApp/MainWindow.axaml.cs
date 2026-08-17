@@ -292,6 +292,25 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
                             mav.BaseStream.BytesToRead > minBytes)
                         {
                             await mav.readPacketAsync().ConfigureAwait(false);
+
+                            // ArduPilot doesn't stream ATTITUDE/VFR_HUD/GPS/etc. at a
+                            // useful rate on its own - MainV2.cs's own serial-reader
+                            // loop calls this after every read for exactly that reason
+                            // (search "UpdateCurrentSettings" there). Without it,
+                            // MAV.cs's fields (what FlightDataViewModel and every
+                            // other CurrentState consumer here read) just sit at
+                            // their zero/default values forever, even with real
+                            // traffic flowing - confirmed live: STATUSTEXT reached
+                            // Terminal fine (a message-driven event, not
+                            // CurrentState-driven), while DATA stayed frozen at
+                            // HDG 0/ALT 0.0/DISARMED/no fix, because nothing had ever
+                            // asked the vehicle to send the streams those fields come
+                            // from. UpdateCurrentSettings itself is already
+                            // internally throttled (20Hz cap on the method body, an
+                            // 8s gate specifically on the re-request-streams block),
+                            // so calling it on every iteration here - unconditionally,
+                            // same as MainV2.cs does - doesn't flood the link.
+                            mav.MAV.cs.UpdateCurrentSettings(null, false, mav);
                         }
                         else
                         {
