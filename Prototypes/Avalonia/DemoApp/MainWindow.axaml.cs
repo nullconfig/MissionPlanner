@@ -388,8 +388,8 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             _initialSetupHost.Content = null;
             _initialSetupHost.IsVisible = false;
             _initialSetupPlaceholderCard.IsVisible = true;
-            _configTuningDockFactory.MotorTestDocument.Context = null;
-            _configTuningDockFactory.ParametersDocument.Context = null;
+            _configTuningDockFactory.MotorTestDocument.Content = null;
+            _configTuningDockFactory.ParametersDocument.Content = null;
             _configTuningDockControl.IsVisible = false;
             _configTuningPlaceholderCard.IsVisible = true;
             // Discarding the old TerminalView and building a fresh one on the next
@@ -500,8 +500,8 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
                 _mav = mav;
                 StartPacketPump(_mav);
 
-                _configTuningDockFactory.MotorTestDocument.Context = new ConfigMotorTestView(_mav, this);
-                _configTuningDockFactory.ParametersDocument.Context = new ParametersView(_mav);
+                _configTuningDockFactory.MotorTestDocument.Content = new ConfigMotorTestView(_mav, this);
+                _configTuningDockFactory.ParametersDocument.Content = new ParametersView(_mav);
                 _configTuningDockControl.IsVisible = true;
                 _configTuningPlaceholderCard.IsVisible = false;
 

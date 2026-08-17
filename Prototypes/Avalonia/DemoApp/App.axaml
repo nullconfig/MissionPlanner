@@ -22,6 +22,18 @@
          happening to differ - see modernization/design-system/components.md's
          "Toolbar row height" section for why this exists. -->
     <x:Double x:Key="ControlHeight">36</x:Double>
+
+    <!-- Dock.Avalonia's own Fluent theme ships default tab-foreground brushes tuned
+         for its own (lighter) default palette - the unselected Motor Test/Parameters
+         document tabs ended up the same color as their background, unreadable until
+         hovered or selected (direct user report, 2026-08-16). StaticResource aliases,
+         not new hex values, so these track TextPrimary/TextSecondary if either ever
+         changes - same reasoning as every other shared color token here. Only the
+         foreground keys are touched; Dock's default backgrounds weren't reported as a
+         problem, so left alone rather than risk an unrelated regression. -->
+    <StaticResource x:Key="DockTabForegroundBrush" ResourceKey="TextSecondary"/>
+    <StaticResource x:Key="DockDocumentTabSelectedForegroundBrush" ResourceKey="TextPrimary"/>
+    <StaticResource x:Key="DockDocumentTabPointerOverForegroundBrush" ResourceKey="TextPrimary"/>
   </Application.Resources>
 
   <Application.Styles>
