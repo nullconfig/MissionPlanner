@@ -21,8 +21,8 @@ data-binds to - see `GCSViews/FlightData.Designer.cs`, search `bindingSourceHud`
 connected vehicle's real lat/lng. This is a deliberate design departure from the real
 screen, not a misreading of it: the real `GCSViews/FlightData.cs` puts the HUD and map
 side by side as separate panels (confirmed both by source and the official
-ardupilot.org docs - see `.okf/flight-data/overview.md`'s "Official docs cross-check").
-This bundle instead follows a direct user request to draw on other modern GCS apps
+ardupilot.org docs). This bundle instead follows a direct user request to draw on
+other modern GCS apps
 (a screenshot of ArduDeck was the concrete reference) that overlay live telemetry
 directly on top of the map rather than beside it. Concretely: a top status bar (mode/
 armed pills, HDG/ALT/SPD/BAT/SAT) sits above the map as its own row, and the remaining
@@ -37,9 +37,9 @@ app-wide, not per-tab.
 translating sky-ground disk, fixed aircraft chevron, fixed roll pointer; no pitch-ladder
 ticks yet) and a `CompassGauge` (N/E/S/W card that rotates opposite to heading behind a
 fixed pointer, plus a numeric heading readout) now sit top-left on the map, matching the
-real screen's own HUD position (see `.okf/flight-data/overview.md`'s "Official docs
-cross-check" - this is the one part of this bundle's overlay design that does match the
-real screen's layout, even though the rest deliberately doesn't). A `FilterChip`/
+real screen's own HUD position - this is the one part of this bundle's overlay design
+that does match the real screen's layout, even though the rest deliberately doesn't.
+A `FilterChip`/
 `FilterChipActive` toggle switches between them - the compass *replaces* the attitude
 gauge, not a second widget shown alongside it, per direct user request. Both widgets are
 plain UserControls with a public `SetAttitude(roll, pitch)` / `SetHeading(heading)`
@@ -48,15 +48,15 @@ method (same manual-push style as the rest of this bundle, not Avalonia bindings
 dictionary (`TextPrimary`/`AccentBlue`/`AccentOrange`/`CardBorder`), since both are only
 ever hosted inside it.
 
-**Not yet confirmed against a real vehicle**: the pitch/roll sign conventions
-(`AttitudeIndicator.SetAttitude`'s comment header) follow the standard real-world
-artificial-horizon convention but haven't been checked against actual telemetry - this
-sandbox has no live vehicle/SITL to connect. `FlightDataView` itself (and so both new
-gauges) only ever gets constructed once a connection succeeds (same
-`ConnectAsync`-gated pattern as Motor Test/Parameters), so a clean `DemoApp` launch only
-proves the app shell starts - not that this specific view constructs without error. Confirm
-by connecting and checking both toggle states before treating the sign conventions as
-correct.
+**2026-08-16 - hardware-verified live**: HDG/ALT/SPD/BAT/mode/GPS all update live
+against a real flight controller now. This exposed a connection-level bug unrelated
+to this bundle's own code - `Open()` never asked the vehicle to actually send
+telemetry at a useful rate, so every `CurrentState` field sat frozen at zero even
+with confirmed MAVLink traffic flowing; fixed in the packet pump, see
+`../DemoApp/MainWindow.axaml.cs`'s `StartPacketPump`. Pitch/roll sign conventions
+(`AttitudeIndicator.SetAttitude`'s comment header) still haven't been specifically
+eyeballed against a real bank/pitch maneuver - the data flows correctly now, but
+"does the horizon visually tilt the right way" is a separate, still-open check.
 
 What's **not** here yet: pitch-ladder tick marks on the attitude indicator, intercardinal
 (NE/SE/SW/NW) marks on the compass, an ArduDeck-style "Following" toggle for the map
@@ -127,8 +127,10 @@ cross-thread updates (see `../Terminal/README.md`).
 
 ## What's next
 
-1. Confirm the attitude/compass gauges' pitch/roll/heading sign conventions against a
-   real connected vehicle - see "Attitude/compass gauges" above, not yet checked.
+1. Eyeball the attitude gauge during a real bank/pitch maneuver to confirm
+   `SetAttitude`'s sign conventions visually match - the underlying data is confirmed
+   live now (see "hardware-verified live" above), this is specifically about whether
+   the horizon tilts the intuitively-correct direction.
 2. Pitch-ladder tick marks (attitude indicator) and intercardinal N/E/S/W marks
    (compass) - both gauges are deliberately simplified for now.
 3. A "Following" toggle - right now the map always re-centers on the vehicle every

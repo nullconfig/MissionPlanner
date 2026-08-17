@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dock="using:Dock.Avalonia.Controls"
         x:Class="MissionPlanner.Prototypes.Avalonia.DemoApp.MainWindow"
         Title="Mission Planner — Avalonia native-Linux harness"
         Width="1180" Height="700" MinWidth="1000" MinHeight="560"
@@ -51,10 +52,9 @@
           <StackPanel Orientation="Horizontal" Spacing="2">
             <!-- Labels are the real on-screen text (MainV2.resx's MenuFlightData/etc.
                  .Text values, confirmed against a running-app screenshot 2026-08-16) -
-                 a single short word per tab, not this bundle's own prose names
-                 ("Flight Data" etc., kept in .okf/mission-planner.md for readability
-                 there but never the literal button text). See
-                 .okf/mission-planner.md's "Corrections" section. -->
+                 a single short word per tab, not the longer descriptive names
+                 ("Flight Data" etc.) used in this project's own prose/planning
+                 docs elsewhere, which are never the literal button text. -->
             <Button x:Name="NavFlightData" Tag="FlightData" Click="OnNavClick" Classes="NavTab NavTabActive">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="◉" FontSize="13"/>
@@ -195,43 +195,23 @@
       </Grid>
 
       <!-- Config/Tuning: the real screen is an umbrella over ~55 independent
-           sub-screens (see .okf/config-tuning/overview.md), not one monolithic tab -
-           this FilterChip strip is the seed of an in-tab sub-nav for however many of
-           them get ported here, not a one-off special case for just these two.
-           MotorTestPanel/ParametersPanel share Grid.Row="1" (same overlap-plus-
-           IsVisible-toggle trick used one level up for FlightDataPanel/
-           ConfigTuningPanel/etc.) so only the selected sub-screen renders. -->
-      <Grid x:Name="ConfigTuningPanel" IsVisible="False" RowDefinitions="Auto,*">
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
-          <Button x:Name="ConfigTuningSubNavMotorTest" Tag="MotorTest" Content="Motor Test"
-                  Click="OnConfigTuningSubNavClick" Classes="FilterChip FilterChipActive" FontSize="11" Padding="10,3"/>
-          <Button x:Name="ConfigTuningSubNavParameters" Tag="Parameters" Content="Parameters"
-                  Click="OnConfigTuningSubNavClick" Classes="FilterChip" FontSize="11" Padding="10,3"/>
-        </StackPanel>
-
-        <Grid Grid.Row="1" x:Name="MotorTestPanel" IsVisible="True">
-          <Border x:Name="ConfigTuningPlaceholderCard" Classes="Card">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-              <TextBlock Text="≡  CONFIG → Motor Test" FontSize="16" FontWeight="Bold"
-                         Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
-              <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) motor test screen."
-                         Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
-            </StackPanel>
-          </Border>
-          <ContentControl x:Name="MotorTestHost" IsVisible="False"/>
-        </Grid>
-
-        <Grid Grid.Row="1" x:Name="ParametersPanel" IsVisible="False">
-          <Border x:Name="ParametersPlaceholderCard" Classes="Card">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
-              <TextBlock Text="▤  CONFIG → Parameters" FontSize="16" FontWeight="Bold"
-                         Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
-              <TextBlock Text="Not connected. Use the connection controls in the banner to load the live parameter list."
-                         Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
-            </StackPanel>
-          </Border>
-          <ContentControl x:Name="ParametersHost" IsVisible="False"/>
-        </Grid>
+           sub-screens, not one monolithic tab. Motor Test and Parameters are real
+           dockable panes now (Dock.Avalonia), not a FilterChip toggle showing one
+           XOR the other - both exist simultaneously, draggable/resizable/floatable,
+           adopted after researching ArduDeck (an Electron/React GCS): its
+           dockable-panel UX comes from "dockview" (a React library), and
+           Dock.Avalonia is the direct Avalonia equivalent - see
+           ConfigTuningDockFactory.cs. -->
+      <Grid x:Name="ConfigTuningPanel" IsVisible="False">
+        <Border x:Name="ConfigTuningPlaceholderCard" Classes="Card">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8" MaxWidth="380">
+            <TextBlock Text="≡  CONFIG" FontSize="16" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+            <TextBlock Text="Not connected. Use the connection controls in the top-right of the banner to load the real (non-mocked) Motor Test and Parameters panes."
+                       Foreground="{StaticResource TextSecondary}" TextWrapping="Wrap" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <dock:DockControl x:Name="ConfigTuningDockControl" IsVisible="False"/>
       </Grid>
 
       <ContentControl x:Name="SimulationHost" IsVisible="False"/>

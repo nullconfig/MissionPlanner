@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Dock.Avalonia.Controls;
 using MissionPlanner;
 using MissionPlanner.Comms;
 using MissionPlanner.Prototypes.Avalonia.ConfigMotorTest;
@@ -54,18 +55,15 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
         private readonly Border _initialSetupPlaceholderCard;
         private readonly ContentControl _initialSetupHost;
         private readonly Border _configTuningPlaceholderCard;
-        private readonly ContentControl _motorTestHost;
 
-        // Config/Tuning's own in-tab sub-nav (Motor Test / Parameters) - independent of
-        // the top banner's nav tabs, and independent of connection state: switching
-        // between these two doesn't need a live MAVLinkInterface, only *populating*
-        // ParametersHost's content does (see ConnectAsync/Disconnect).
-        private readonly Button _configTuningSubNavMotorTest;
-        private readonly Button _configTuningSubNavParameters;
-        private readonly Grid _motorTestPanel;
-        private readonly Grid _parametersPanel;
-        private readonly Border _parametersPlaceholderCard;
-        private readonly ContentControl _parametersHost;
+        // Motor Test / Parameters are real dockable panes (Dock.Avalonia), not a
+        // FilterChip toggle showing one XOR the other - see ConfigTuningDockFactory.cs.
+        // The factory/layout are built once in the constructor (independent of
+        // connection state, matching the old sub-nav's own independence from it);
+        // only the two Documents' Content gets populated post-connect (ConnectAsync)
+        // and cleared on Disconnect.
+        private readonly DockControl _configTuningDockControl;
+        private readonly ConfigTuningDockFactory _configTuningDockFactory;
 
         // Persistent, foldable, read-only troubleshooting console - not a nav tab, see
         // the constructor comment above. The fold toggle lives inside TerminalView's
@@ -129,13 +127,17 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             _initialSetupPlaceholderCard = this.FindControl<Border>("InitialSetupPlaceholderCard");
             _initialSetupHost = this.FindControl<ContentControl>("InitialSetupHost");
             _configTuningPlaceholderCard = this.FindControl<Border>("ConfigTuningPlaceholderCard");
-            _motorTestHost = this.FindControl<ContentControl>("MotorTestHost");
-            _configTuningSubNavMotorTest = this.FindControl<Button>("ConfigTuningSubNavMotorTest");
-            _configTuningSubNavParameters = this.FindControl<Button>("ConfigTuningSubNavParameters");
-            _motorTestPanel = this.FindControl<Grid>("MotorTestPanel");
-            _parametersPanel = this.FindControl<Grid>("ParametersPanel");
-            _parametersPlaceholderCard = this.FindControl<Border>("ParametersPlaceholderCard");
-            _parametersHost = this.FindControl<ContentControl>("ParametersHost");
+            _configTuningDockControl = this.FindControl<DockControl>("ConfigTuningDockControl");
+
+            // Built once here, not per-connect - the layout itself (two panes, docked
+            // side by side) doesn't depend on connection state, only the panes'
+            // Content does (see ConnectAsync/Disconnect).
+            _configTuningDockFactory = new ConfigTuningDockFactory();
+            var configTuningLayout = _configTuningDockFactory.CreateLayout();
+            _configTuningDockFactory.InitLayout(configTuningLayout);
+            _configTuningDockControl.Factory = _configTuningDockFactory;
+            _configTuningDockControl.Layout = configTuningLayout;
+
             _bottomConsolePanel = this.FindControl<Border>("BottomConsolePanel");
             _bottomConsoleHost = this.FindControl<ContentControl>("BottomConsoleHost");
 
@@ -189,35 +191,6 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
         // NavHamburger's MenuFlyout - both expose Tag and raise this via Click, and
         // Control is their nearest common type that does.
         private void OnNavClick(object sender, RoutedEventArgs e) => ShowSection((string)((Control)sender).Tag);
-
-        // Config/Tuning's own sub-nav, independent of ShowSection above (that one
-        // swaps the six top-banner sections; this one swaps within the Config/Tuning
-        // section only). Reuses Button.FilterChip/FilterChipActive - the same toggle
-        // pattern Terminal's All/Info/Error filters already use, not a new class.
-        private void OnConfigTuningSubNavClick(object sender, RoutedEventArgs e)
-        {
-            var key = (string)((Button)sender).Tag;
-
-            foreach (var (button, panel, tag) in new[]
-                     {
-                         (_configTuningSubNavMotorTest, (Control)_motorTestPanel, "MotorTest"),
-                         (_configTuningSubNavParameters, (Control)_parametersPanel, "Parameters"),
-                     })
-            {
-                var active = tag == key;
-                // FilterChip must stay on regardless of state - it's the class that
-                // carries the pill shape (CornerRadius 999) and border; FilterChipActive
-                // only layers the selected fill on top. Removing FilterChip on activate
-                // (the previous bug here) left the active button on the base Button
-                // theme's square corners while its unselected siblings stayed oval - see
-                // .okf/log.md's "unselected buttons oval" entry.
-                if (active)
-                    button.Classes.Add("FilterChipActive");
-                else
-                    button.Classes.Remove("FilterChipActive");
-                panel.IsVisible = active;
-            }
-        }
 
         private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e) => UpdateNavCollapse(e.NewSize.Width);
 
@@ -319,6 +292,25 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
                             mav.BaseStream.BytesToRead > minBytes)
                         {
                             await mav.readPacketAsync().ConfigureAwait(false);
+
+                            // ArduPilot doesn't stream ATTITUDE/VFR_HUD/GPS/etc. at a
+                            // useful rate on its own - MainV2.cs's own serial-reader
+                            // loop calls this after every read for exactly that reason
+                            // (search "UpdateCurrentSettings" there). Without it,
+                            // MAV.cs's fields (what FlightDataViewModel and every
+                            // other CurrentState consumer here read) just sit at
+                            // their zero/default values forever, even with real
+                            // traffic flowing - confirmed live: STATUSTEXT reached
+                            // Terminal fine (a message-driven event, not
+                            // CurrentState-driven), while DATA stayed frozen at
+                            // HDG 0/ALT 0.0/DISARMED/no fix, because nothing had ever
+                            // asked the vehicle to send the streams those fields come
+                            // from. UpdateCurrentSettings itself is already
+                            // internally throttled (20Hz cap on the method body, an
+                            // 8s gate specifically on the re-request-streams block),
+                            // so calling it on every iteration here - unconditionally,
+                            // same as MainV2.cs does - doesn't flood the link.
+                            mav.MAV.cs.UpdateCurrentSettings(null, false, mav);
                         }
                         else
                         {
@@ -415,12 +407,10 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             _initialSetupHost.Content = null;
             _initialSetupHost.IsVisible = false;
             _initialSetupPlaceholderCard.IsVisible = true;
-            _motorTestHost.Content = null;
-            _motorTestHost.IsVisible = false;
+            _configTuningDockFactory.MotorTestDocument.Content = null;
+            _configTuningDockFactory.ParametersDocument.Content = null;
+            _configTuningDockControl.IsVisible = false;
             _configTuningPlaceholderCard.IsVisible = true;
-            _parametersHost.Content = null;
-            _parametersHost.IsVisible = false;
-            _parametersPlaceholderCard.IsVisible = true;
             // Discarding the old TerminalView and building a fresh one on the next
             // connect is what resets its fold state back to expanded - no manual reset
             // needed here.
@@ -529,13 +519,10 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
                 _mav = mav;
                 StartPacketPump(_mav);
 
-                _motorTestHost.Content = new ConfigMotorTestView(_mav, this);
-                _motorTestHost.IsVisible = true;
+                _configTuningDockFactory.MotorTestDocument.Content = new ConfigMotorTestView(_mav, this);
+                _configTuningDockFactory.ParametersDocument.Content = new ParametersView(_mav);
+                _configTuningDockControl.IsVisible = true;
                 _configTuningPlaceholderCard.IsVisible = false;
-
-                _parametersHost.Content = new ParametersView(_mav);
-                _parametersHost.IsVisible = true;
-                _parametersPlaceholderCard.IsVisible = false;
 
                 _flightDataHost.Content = new FlightDataView(_mav);
                 _flightDataHost.IsVisible = true;
@@ -553,7 +540,11 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             }
             catch (Exception ex)
             {
-                _connectStatusText.Text = "Failed: " + ex.Message;
+                // ex.Message alone (what the status bar shows) isn't enough to
+                // diagnose a real failure - no stack trace, no inner exception. Full
+                // detail goes to AppLog.LogFilePath instead.
+                AppLog.WriteException("ConnectAsync failed", ex);
+                _connectStatusText.Text = $"Failed: {ex.Message} (see {AppLog.LogFilePath})";
             }
             finally
             {

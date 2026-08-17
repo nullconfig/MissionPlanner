@@ -6,21 +6,21 @@
 
   <!--
     Chunk 1 of Config's real "Full Parameter List" page (GCSViews/ConfigurationView/
-    ConfigRawParams.cs - see .okf/config-tuning/parameters/overview.md) - a live,
-    searchable, read-only table of every real parameter on the connected vehicle, plus
-    the real left-side parameter-group tree (ConfigRawParams.cs's treeView1/BuildTree(),
-    added 2026-08-16 - see ParametersViewModel.cs's BuildGroupTree for the ported
-    algorithm). Column set (Name/Value/Default/Units/Options/Desc) matches the real
-    screen exactly, verified against ConfigRawParams.Designer.cs/.resx (2026-08-16 -
-    chunk 1 originally shipped with a guessed, wrong column set:
-    Name/Value/Units/DisplayName/Description). Deliberately not the DataGridView
-    grid-editing/param-compare/save-load/Fav-favorites/action-panel feature set the real
-    screen has; those are later chunks once this one's reviewed.
+    ConfigRawParams.cs) - a live, searchable, read-only table of every real parameter
+    on the connected vehicle, plus the real left-side parameter-group tree
+    (ConfigRawParams.cs's treeView1/BuildTree(), added 2026-08-16 - see
+    ParametersViewModel.cs's BuildGroupTree for the ported algorithm). Column set
+    (Name/Value/Default/Units/Options/Desc) matches the real screen exactly, verified
+    against ConfigRawParams.Designer.cs/.resx (2026-08-16 - chunk 1 originally shipped
+    with a guessed, wrong column set: Name/Value/Units/DisplayName/Description).
+    Deliberately not the DataGridView grid-editing/param-compare/save-load/
+    Fav-favorites/action-panel feature set the real screen has; those are later chunks
+    once this one's reviewed.
 
     Visual language (cards, dark palette, CardHeading) copied verbatim from
-    ../DemoApp/App.axaml, same self-contained-per-bundle pattern every other bundle here
-    follows - see ../../../.okf/modernization/design-system/ for the shared reference
-    and why byte-identical copying (not retyping from memory) matters.
+    ../DemoApp/App.axaml, same self-contained-per-bundle pattern every other bundle
+    here follows - byte-identical copying, not retyping from memory, so this stays in
+    sync with the shared palette.
   -->
 
   <UserControl.Resources>
@@ -97,9 +97,8 @@
     <!-- Right-side action panel (ConfigRawParams.cs's tableLayoutPanel1, Dock=Right) -
          real button/label/order verified against ConfigRawParams.Designer.cs/.resx, not
          guessed. Most of these are disabled: they need write-back, file I/O, or a live
-         re-download that isn't built yet (see each button's own ToolTip.Tip below and
-         .okf/config-tuning/parameters/overview.md's chunk list) - present for visual
-         parity with the real screen, not faked as functional. -->
+         re-download that isn't built yet (see each button's own ToolTip.Tip below) -
+         present for visual parity with the real screen, not faked as functional. -->
     <Style Selector="Button.SidebarAction">
       <Setter Property="Background" Value="#1F2430"/>
       <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
@@ -180,8 +179,8 @@
           <!-- Header text and order match the real ConfigRawParams.resx exactly
                (Name/Value/Default/Units/Options/Desc) - see ParametersViewModel.cs's
                ParameterRowViewModel for where each one's real data comes from. Fav
-               (favorites checkbox) is the one real column not here yet - out of scope
-               for this chunk, see the OKF bundle's "Next immediate step"/chunk list. -->
+               (favorites checkbox) is the one real column not here yet - a later
+               chunk, not forgotten. -->
           <DataGrid.Columns>
             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="200" FontFamily="Consolas,Menlo,monospace"/>
             <DataGridTextColumn Header="Value" Binding="{Binding ValueText}" Width="90"/>

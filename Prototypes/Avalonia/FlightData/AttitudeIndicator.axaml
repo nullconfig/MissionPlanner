@@ -15,10 +15,10 @@
 
     Pitch/roll sign conventions (which way the horizon should move for nose-up vs.
     nose-down, which way it should rotate for a right vs. left bank) are implemented
-    per the standard real-world artificial-horizon convention, but not yet confirmed
-    against a real connected vehicle - flagged in README.md's "What's next" the same
-    way the HUD-position discrepancy is flagged in .okf/flight-data/overview.md, not
-    silently assumed correct.
+    per the standard real-world artificial-horizon convention. The underlying data
+    is confirmed live against a real vehicle; whether the horizon visually tilts the
+    intuitively-correct direction during an actual maneuver is still an open check -
+    see README.md's "What's next".
   -->
 
   <Grid>

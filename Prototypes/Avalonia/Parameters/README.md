@@ -3,16 +3,14 @@
 One of the per-tab bundles mirroring Mission Planner's own top-level screens - see
 `../DemoApp/README.md`'s "Bundles" section for the full list and how they're hosted.
 Structurally, this one is the real **"Full Parameter List" page inside Config** (the
-tab's real button label is "CONFIG", not "Config/Tuning" - see
-`.okf/config-tuning/overview.md`'s "Corrections" for that and how much smaller Config's
-real page list turned out to be than this bundle originally assumed), corresponding
+tab's real button label is "CONFIG", not "Config/Tuning" - Config's real page list
+turned out to be much smaller than this bundle originally assumed), corresponding
 directly to `ConfigRawParams.cs`. `ConfigFriendlyParams.cs` (a different real Config
 page, "Standard Params") shares this bundle for now too - see below for why.
 
 ## Status: chunk 1 of N - read-only, real data, no editing yet
 
-Deliberately staged rather than a single big port - see
-`.okf/config-tuning/parameters/overview.md` for the full plan. This chunk: a live,
+Deliberately staged rather than a single big port. This chunk: a live,
 searchable table of every real parameter on the connected vehicle, with the exact same
 column set as the real `ConfigRawParams.cs` screen (verified against its `.Designer.cs`/
 `.resx` 2026-08-16, after the user described the real screen from actually looking at
@@ -32,8 +30,8 @@ narrows the grid to that group, combined with the search box.
 
 **Also done, 2026-08-16**: real metadata now loads on a plain-`dotnet run` machine (a
 shared `Settings.cs` bug meant `ParameterMetaDataRepository` silently returned nothing
-outside Mono - see `.okf/config-tuning/parameters/overview.md` for the fix), and the
-real right-side action panel (`ConfigRawParams.cs`'s `tableLayoutPanel1`) is now built
+outside Mono - see `ExtLibs/Utilities/Settings.cs`'s `GetDataDirectory()` for the fix),
+and the real right-side action panel (`ConfigRawParams.cs`'s `tableLayoutPanel1`) is now built
 as a third grid column - tree/grid/panel, matching the real `splitContainer1` layout.
 `None Default`, `Refresh Table`, and `Search` (relocated here from the old top-of-card
 box) are real and wired; everything else in the panel is present but disabled with a
@@ -107,8 +105,7 @@ grouped-cards view turns out to want its own bundle).
 
 ## What's next
 
-See `.okf/config-tuning/parameters/overview.md`'s staged plan. The column-set fix and
-the parameter-group tree above were the two previous "next" items - both done
-2026-08-16. Next up: in-place editing (`DataGrid` non-read-only `Value` column,
+The column-set fix and the parameter-group tree above were the two previous "next"
+items - both done 2026-08-16. Next up: in-place editing (`DataGrid` non-read-only `Value` column,
 `setParamAsync` on commit, `RebootRequired` warning surfaced somewhere visible, plus a
 real `Write Params` action) - the next real vehicle-facing feature, not yet started.

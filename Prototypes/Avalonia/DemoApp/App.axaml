@@ -22,6 +22,18 @@
          happening to differ - see modernization/design-system/components.md's
          "Toolbar row height" section for why this exists. -->
     <x:Double x:Key="ControlHeight">36</x:Double>
+
+    <!-- Dock.Avalonia's own Fluent theme ships default tab-foreground brushes tuned
+         for its own (lighter) default palette - the unselected Motor Test/Parameters
+         document tabs ended up the same color as their background, unreadable until
+         hovered or selected (direct user report, 2026-08-16). StaticResource aliases,
+         not new hex values, so these track TextPrimary/TextSecondary if either ever
+         changes - same reasoning as every other shared color token here. Only the
+         foreground keys are touched; Dock's default backgrounds weren't reported as a
+         problem, so left alone rather than risk an unrelated regression. -->
+    <StaticResource x:Key="DockTabForegroundBrush" ResourceKey="TextSecondary"/>
+    <StaticResource x:Key="DockDocumentTabSelectedForegroundBrush" ResourceKey="TextPrimary"/>
+    <StaticResource x:Key="DockDocumentTabPointerOverForegroundBrush" ResourceKey="TextPrimary"/>
   </Application.Resources>
 
   <Application.Styles>
@@ -31,6 +43,13 @@
          custom Style Selector= below still applies unchanged, and RequestedThemeVariant
          above still governs light/dark the same way. -->
     <styling:FluentAvaloniaTheme />
+
+    <!-- Dock.Avalonia's own Fluent theme, registered alongside FluentAvaloniaTheme
+         above - Dock's docs show this as a bare, unprefixed element next to
+         FluentTheme, implying it resolves through the default avaloniaui xmlns via
+         the package's own XmlnsDefinition, same mechanism as every other unprefixed
+         Avalonia control here. -->
+    <DockFluentTheme />
 
     <!-- FluentAvaloniaTheme's own Button ControlTheme (see FluentAvalonia's
          ButtonStyles.axaml) sets an 83ms BrushTransition on PART_ContentPresenter's
@@ -201,8 +220,7 @@
            than that natural size) without this left the selected-item text pinned
            near the top instead of re-centering in the extra room - measured ~4px
            higher than Button.Primary's own text in the same row (Button's
-           FluentAvalonia theme already sets VerticalContentAlignment=Center itself).
-           See .okf/log.md's "Connect button centering" entry. -->
+           FluentAvalonia theme already sets VerticalContentAlignment=Center itself). -->
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
@@ -214,7 +232,7 @@
       <!-- Rectangular, not pill-shaped - CornerRadius=6 matches every other button
            class in this file (Primary/Ghost/IconBox/etc.), per direct user feedback:
            the 999 pill radius used before wasn't wanted at all, in either state, not
-           just inconsistent between them. See .okf/log.md. -->
+           just inconsistent between them. -->
       <Setter Property="CornerRadius" Value="6"/>
     </Style>
     <Style Selector="Button.FilterChip:pointerover /template/ ContentPresenter">

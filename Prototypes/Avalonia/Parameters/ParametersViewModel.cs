@@ -16,9 +16,7 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
     // ConfigMotorTestViewModel already make); Default comes from a different source
     // entirely - MAVLinkParam's own MAVLink-reported default, not metadata; Options
     // combines *two* metadata lookups (Range + Values) into one field, matching
-    // ConfigRawParams.cs's own `range + "\n" + options` concatenation. See
-    // .okf/config-tuning/parameters/overview.md's "Next immediate step" section (now
-    // done) for the real header-name/Designer-field/source table this was built from.
+    // ConfigRawParams.cs's own `range + "\n" + options` concatenation.
     // Plain fields, not a ReactiveObject - this chunk is read-only (see
     // ParametersViewModel's own comment), so there's nothing here that changes after
     // construction yet.
@@ -47,9 +45,8 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
     }
 
     // Chunk 1 of the "full parameter list" screen (GCSViews/ConfigurationView/
-    // ConfigRawParams.cs / ConfigFriendlyParams.cs) - see
-    // .okf/config-tuning/parameters/overview.md for the staged plan this is one piece
-    // of. Deliberately read-only for now: lists every real parameter on the connected
+    // ConfigRawParams.cs / ConfigFriendlyParams.cs) - one piece of a staged plan.
+    // Deliberately read-only for now: lists every real parameter on the connected
     // vehicle with search/filter and the real parameter-group tree, but no in-place
     // editing/setParamAsync write-back yet - that's the next chunk, once this one's
     // reviewed. No Avalonia dependency here (matches every other bundle's ViewModel) -
@@ -99,6 +96,13 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             get => _statusText;
             private set => this.RaiseAndSetIfChanged(ref _statusText, value);
         }
+
+        // Surfaces a background BuildRows()/BuildGroupTree() failure in the UI
+        // itself (the same StatusText readout that normally shows "N of M
+        // parameters") rather than letting it crash the process - see
+        // ParametersView.axaml.cs's AttachedToVisualTree handler for why that
+        // matters here specifically.
+        public void SetLoadError(string message) => StatusText = $"Failed to load parameters: {message}";
 
         // Matches ConfigRawParams.cs's chk_none_default ("None Default") - visible
         // only when the DataGridView row's Default_value cell differs from its Value
@@ -162,7 +166,22 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             var firmware = _mav.MAV.cs.firmware.ToString();
             var rows = new List<ParameterRowViewModel>();
 
-            foreach (var p in _mav.MAV.param)
+            // MAVLinkParamList (ExtLibs/Mavlink/MAVLinkParamList.cs) derives from
+            // List<MAVLinkParam> and only protects its OWN methods (the indexer,
+            // Add, Clear) with an internal ReaderWriterLock - a plain external
+            // foreach bypasses that lock entirely, since GetEnumerator() isn't
+            // overridden. Live params keep arriving over MAVLink on a different
+            // thread while this runs (right after connect, up to ~1500 of them),
+            // so a bare `foreach (var p in _mav.MAV.param)` here threw
+            // InvalidOperationException: "Collection was modified" mid-iteration -
+            // confirmed via a real crash log during live hardware testing, not
+            // something reproducible without a connected vehicle. .ToArray()
+            // snapshots once via a single fast bulk copy before the slow per-item
+            // metadata lookups below - the same pattern MAVLinkParamList's own
+            // Keys property and its Dictionary<string,double> cast operator already
+            // use internally for this exact reason, not a new workaround invented
+            // here.
+            foreach (var p in _mav.MAV.param.ToArray())
             {
                 // Real MAVLink-reported default, not a metadata-repository lookup -
                 // ConfigRawParams.cs reads this straight off the param itself

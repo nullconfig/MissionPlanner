@@ -16,10 +16,23 @@ namespace MissionPlanner.Prototypes.Avalonia.DemoApp
             // migration check, which would otherwise prefer a stale ~/Documents/Mission
             // Planner directory over the real cache if one happens to exist. This is what
             // lets ParameterMetaDataRepository find the same cached apm.pdef.xml files
-            // (or download fresh ones) that the real Mono app uses - see
-            // .okf/config-tuning/parameters/overview.md.
+            // (or download fresh ones) that the real Mono app uses.
             Settings.CustomUserDataDirectory =
                 System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
+
+            // Global safety net, not just ConnectAsync's own try/catch - anything
+            // thrown outside a try/catch this app already has (a Dispatcher.UIThread
+            // callback, a fire-and-forget Task.Run continuation) would otherwise
+            // crash silently or vanish with no record at all during a live test.
+            System.AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+                AppLog.WriteException("AppDomain.UnhandledException",
+                    e.ExceptionObject as System.Exception ?? new System.Exception(e.ExceptionObject?.ToString()));
+            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (_, e) =>
+            {
+                AppLog.WriteException("TaskScheduler.UnobservedTaskException", e.Exception);
+                e.SetObserved();
+            };
+            AppLog.Write($"--- DemoApp starting, log at {AppLog.LogFilePath} ---");
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);

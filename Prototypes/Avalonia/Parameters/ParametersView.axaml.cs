@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -28,15 +29,33 @@ namespace MissionPlanner.Prototypes.Avalonia.Parameters
             // collections, so it has to run back on the UI thread, which is exactly
             // where this continuation resumes after await (Avalonia's UI
             // SynchronizationContext, no manual Dispatcher.UIThread.Post needed).
+            // This is an async void-shaped event handler (event handlers can't be
+            // async Task) - any exception after the first await here bypasses normal
+            // Task exception propagation and becomes fatal to the whole process, not
+            // just this view. Confirmed the hard way: a live-hardware-only race in
+            // BuildRows() (MAVLinkParamList mutated by the packet thread while this
+            // iterated it - see BuildRows' own comment) took down the entire app,
+            // including unrelated tabs like FlightData, not just this one. The
+            // try/catch here isn't defensive boilerplate - it's the fix for that
+            // blast radius, independent of whatever the underlying bug turns out to
+            // be next time.
             AttachedToVisualTree += async (_, __) =>
             {
-                var (rows, groupTree) = await Task.Run(() =>
+                try
                 {
-                    var builtRows = _viewModel.BuildRows();
-                    var builtTree = _viewModel.BuildGroupTree(builtRows.Select(r => r.Name).ToList());
-                    return (builtRows, builtTree);
-                });
-                _viewModel.SetRows(rows, groupTree);
+                    var (rows, groupTree) = await Task.Run(() =>
+                    {
+                        var builtRows = _viewModel.BuildRows();
+                        var builtTree = _viewModel.BuildGroupTree(builtRows.Select(r => r.Name).ToList());
+                        return (builtRows, builtTree);
+                    });
+                    _viewModel.SetRows(rows, groupTree);
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"ParametersView: failed to build parameter list: {ex}");
+                    _viewModel.SetLoadError(ex.Message);
+                }
             };
         }
 
